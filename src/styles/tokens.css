@@ -1,0 +1,101 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   NeuroTrack — Design Tokens (fuente única de verdad)
+   Para cambiar el azul primario: edita --c-navy y --c-blue aquí.
+   Todos los archivos CSS consumen estos valores via var().
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  /* ── Azules de marca ── */
+  --c-navy:         #0B2545;   /* navy principal — sidebars, texto, headings */
+  --c-navy-mid:     #1D3A5F;   /* bordes de sidebar, divisores oscuros */
+  --c-navy-hover:   #142d4c;   /* bg hover de nav items */
+  --c-blue:         #1D5FA8;   /* azul activo — links, estados activos, avatar */
+  --c-blue-deep:    #1B4B8A;   /* azul profundo — botones CTA, íconos KPI */
+  --c-blue-dark:    #0C447C;   /* texto de badge médico, btn oscuro */
+
+  /* ── Tintes azules (badges, tags, hovers) ── */
+  --c-blue-50:      #E8F0F9;   /* tinte mínimo — avatar paciente, kpi icon bg */
+  --c-blue-100:     #EBF2FB;   /* tinte muy claro — hover, tag bg */
+  --c-blue-200:     #E6F1FB;   /* badge médico bg, op-update bg */
+  --c-blue-300:     #85B7EB;   /* bordes de tag y btn-ver */
+  --c-blue-400:     #8AAECF;   /* texto nav sidebar */
+  --c-blue-500:     #A8BDD4;   /* subtexto sidebar secundario */
+
+  /* ── Jerarquía de texto ── */
+  --c-text-primary: #0B2545;   /* igual a --c-navy */
+  --c-text-sec:     #5B7FA6;   /* labels, texto secundario */
+  --c-text-muted:   #7A8FA8;   /* meta, timestamps, placeholders */
+  --c-text-table:   #3A5270;   /* contenido de celdas de tabla */
+
+  /* ── Superficies / backgrounds ── */
+  --c-bg-shell:     #FAF6F0;   /* fondo de página / shell para todos los roles */
+  --c-bg-warm:      #F0EDE8;   /* tinte cálido — tags, separadores, role bars */
+  --c-surface:      #ffffff;   /* superficie de card y panel */
+  --c-surface-alt:  #F4F6FA;   /* cabeceras de tabla, superficie sutil */
+  --c-input-bg:     #FDFAF7;   /* fondo de inputs y selects */
+  --c-row-hover:    #F8FAFD;   /* hover de fila de tabla */
+
+  /* ── Bordes ── */
+  --c-border:       #DDD5C8;   /* borde principal de card / panel */
+  --c-border-input: #C8C0B5;   /* borde de inputs y controles */
+  --c-border-strong:#C8C0B5;   /* borde fuerte — header tabla sticky */
+  --c-border-sub:   #EDE8E1;   /* divisor sutil entre filas */
+
+  /* ── Estado: OK / verde ── */
+  --c-ok:           #2A9E6A;   /* punto indicador / dot */
+  --c-ok-text:      #1A6B3C;   /* texto verde legible */
+  --c-ok-bg:        #E1F5EE;   /* fondo badge OK */
+
+  /* ── Estado: Alerta / naranja ── */
+  --c-warn:         #E8A020;   /* punto indicador */
+  --c-warn-text:    #633806;   /* texto naranja legible */
+  --c-warn-bg:      #FAEEDA;   /* fondo badge warn */
+
+  /* ── Estado: Peligro / rojo ── */
+  --c-danger:       #E24B4A;   /* punto indicador */
+  --c-danger-text:  #A32D2D;   /* texto rojo legible */
+  --c-danger-bg:    #FCEBEB;   /* fondo badge danger */
+
+  /* ── Colores de rol — fuente canónica para todo el proyecto ── */
+  --c-role-medico-bg:       #E6F1FB;
+  --c-role-medico-text:     #0C447C;
+  --c-role-medico-avatar:   #1D5FA8;
+
+  --c-role-inv-bg:          #EAF3DE;
+  --c-role-inv-text:        #27500A;
+  --c-role-inv-avatar:      #3B6D11;
+
+  --c-role-cuidador-bg:     #FAEEDA;
+  --c-role-cuidador-text:   #633806;
+  --c-role-cuidador-avatar: #854F0B;
+
+  --c-role-paciente-bg:     #F1EFFE;
+  --c-role-paciente-text:   #3C3489;
+  --c-role-paciente-avatar: #1B4B8A;
+
+  /* ── Módulos clínicos (Tremor / Fog / Brady) ── */
+  --c-mod-tremor-bg:   #DAE9F8;
+  --c-mod-tremor-text: #1B4B8A;   /* = --c-blue-deep */
+  --c-mod-fog-bg:      #D8F0E6;
+  --c-mod-fog-text:    #0A4A30;
+  --c-mod-brady-bg:    #EAE6FB;
+  --c-mod-brady-text:  #3C3489;   /* = --c-role-paciente-text */
+
+  /* ── Breakpoints (documentación — no se pueden usar en @media con var())
+     --bp-mobile:  600px  → layout mobile: sidebar oculto, columnas apiladas
+     --bp-tablet: 1024px  → tablet: paneles laterales ocultos
+  ── */
+
+  /* ── Escala tipográfica ── */
+  --t-table-h: 10px;   /* cabecera de tabla (th) */
+  --t-label:   11px;   /* labels uppercase: sección, campo, panel */
+  --t-sm:      12px;   /* texto compacto / secundario */
+  --t-base:    13px;   /* cuerpo UI por defecto */
+
+  /* ── Tipografía ── */
+  --c-font:      'Inter', sans-serif;
+  --c-font-mono: ui-monospace, Consolas, monospace;
+}
+
+body {
+  font-family: var(--c-font);
+}

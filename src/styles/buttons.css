@@ -1,0 +1,80 @@
+/* ── NeuroTrack — Sistema de botones unificado ── */
+
+/* Base compartida */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 16px;
+  font-family: var(--c-font);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  border: 0.5px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  user-select: none;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.btn:disabled { opacity: 0.55; cursor: not-allowed; pointer-events: none; }
+
+/* ── Primario — acción principal ── */
+.btn-primary {
+  background: var(--c-navy);
+  color: #fff;
+  border-color: transparent;
+}
+.btn-primary:hover { background: var(--c-blue); }
+
+/* ── Secundario — cancelar / volver / auxiliar ── */
+.btn-secondary {
+  background: var(--c-surface);
+  color: var(--c-navy);
+  border-color: var(--c-border-input);
+}
+.btn-secondary:hover { border-color: var(--c-blue); color: var(--c-blue); }
+
+/* ── Tonal — ver / explorar (relleno azul tenue) ── */
+.btn-tonal {
+  background: var(--c-blue-50);
+  color: var(--c-blue-deep);
+  border-color: var(--c-blue-200);
+}
+.btn-tonal:hover { background: var(--c-blue-100); }
+
+/* ── Semánticos ── */
+.btn-success {
+  background: var(--c-ok-bg);
+  color: var(--c-ok-text);
+  border-color: var(--c-ok);
+}
+.btn-success:hover { filter: brightness(0.94); }
+
+.btn-danger {
+  background: var(--c-danger-bg);
+  color: var(--c-danger-text);
+  border-color: var(--c-danger);
+}
+.btn-danger:hover { filter: brightness(0.94); }
+
+.btn-warn {
+  background: var(--c-warn-bg);
+  color: var(--c-warn-text);
+  border-color: var(--c-warn);
+}
+.btn-warn:hover { filter: brightness(0.94); }
+
+/* ── Modificadores ── */
+.btn.btn-sm { padding: 4px 9px; font-size: 10px; border-radius: 6px; }
+
+.btn.btn-icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  flex-shrink: 0;
+}

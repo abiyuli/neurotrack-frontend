@@ -1,0 +1,15 @@
+{
+  "patient_id":         {"S": "P105"},
+  "medico_id":          {"S": "117bb500-8011-7072-e5ad-dd51a2f9e156"},
+  "nombre":             {"S": "Carlos Mendoza"},
+  "edad":               {"N": "68"},
+  "dni":                {"S": "12345678"},
+  "telefono":           {"S": "999888777"},
+  "medicacion":         {"S": "Levodopa"},
+  "dosis":              {"S": "100mg 3x/dia"},
+  "diagnostico":        {"S": "Parkinson estadio 2"},
+  "tiempo_diagnostico": {"S": "3 anios"},
+  "estado":             {"S": "Activo"},
+  "comorbilidades":     {"S": "Hipertension"},
+  "fecha_registro":     {"S": "2026-05-27"}
+}

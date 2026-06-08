@@ -1,0 +1,423 @@
+{
+  "parkinson_motor_events": [
+
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":         { "S": "PATIENT#P105" },
+          "SK":         { "S": "EVENT#1748000001" },
+          "patient_id": { "S": "P105" },
+          "timestamp":  { "N": "1748000001" },
+          "type":       { "S": "tremor" },
+          "alert_flag": { "S": "HIGH" },
+          "accel_x":    { "N": "0.82" },
+          "accel_y":    { "N": "1.14" },
+          "accel_z":    { "N": "0.47" },
+          "tremor_frequency": { "N": "4.8" },
+          "tremor_amplitude": { "N": "1.9" },
+          "tremor_class":     { "S": "rest" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":         { "S": "PATIENT#P105" },
+          "SK":         { "S": "EVENT#1748000061" },
+          "patient_id": { "S": "P105" },
+          "timestamp":  { "N": "1748000061" },
+          "type":       { "S": "tremor" },
+          "alert_flag": { "S": "HIGH" },
+          "accel_x":    { "N": "0.91" },
+          "accel_y":    { "N": "1.23" },
+          "accel_z":    { "N": "0.55" },
+          "tremor_frequency": { "N": "5.1" },
+          "tremor_amplitude": { "N": "2.1" },
+          "tremor_class":     { "S": "rest" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":         { "S": "PATIENT#P105" },
+          "SK":         { "S": "EVENT#1748000200" },
+          "patient_id": { "S": "P105" },
+          "timestamp":  { "N": "1748000200" },
+          "type":       { "S": "tremor" },
+          "alert_flag": { "S": "MEDIUM" },
+          "accel_x":    { "N": "0.44" },
+          "accel_y":    { "N": "0.61" },
+          "accel_z":    { "N": "0.29" },
+          "tremor_frequency": { "N": "3.9" },
+          "tremor_amplitude": { "N": "1.2" },
+          "tremor_class":     { "S": "rest" }
+        }
+      }
+    },
+
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":         { "S": "PATIENT#P105" },
+          "SK":         { "S": "EVENT#1748000300" },
+          "patient_id": { "S": "P105" },
+          "timestamp":  { "N": "1748000300" },
+          "type":       { "S": "tremor" },
+          "alert_flag": { "S": "LOW" },
+          "accel_x":    { "N": "0.13" },
+          "accel_y":    { "N": "0.11" },
+          "accel_z":    { "N": "0.09" },
+          "tremor_frequency": { "N": "2.3" },
+          "tremor_amplitude": { "N": "0.4" },
+          "tremor_class":     { "S": "normal" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":         { "S": "PATIENT#P105" },
+          "SK":         { "S": "EVENT#1748000400" },
+          "patient_id": { "S": "P105" },
+          "timestamp":  { "N": "1748000400" },
+          "type":       { "S": "tremor" },
+          "alert_flag": { "S": "MEDIUM" },
+          "accel_x":    { "N": "0.37" },
+          "accel_y":    { "N": "0.48" },
+          "accel_z":    { "N": "0.21" },
+          "tremor_frequency": { "N": "3.5" },
+          "tremor_amplitude": { "N": "0.9" },
+          "tremor_class":     { "S": "rest" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":         { "S": "PATIENT#P105" },
+          "SK":         { "S": "EVENT#1748000500" },
+          "patient_id": { "S": "P105" },
+          "timestamp":  { "N": "1748000500" },
+          "type":       { "S": "tremor" },
+          "alert_flag": { "S": "HIGH" },
+          "accel_x":    { "N": "1.02" },
+          "accel_y":    { "N": "1.31" },
+          "accel_z":    { "N": "0.68" },
+          "tremor_frequency": { "N": "6.9" },
+          "tremor_amplitude": { "N": "2.7" },
+          "tremor_class":     { "S": "essential" }
+        }
+      }
+    },
+
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":             { "S": "PATIENT#P105" },
+          "SK":             { "S": "EVENT#1748001000" },
+          "patient_id":     { "S": "P105" },
+          "timestamp":      { "N": "1748001000" },
+          "type":           { "S": "fog" },
+          "alert_flag":     { "S": "HIGH" },
+          "accel_x":        { "N": "0.12" },
+          "accel_y":        { "N": "0.09" },
+          "accel_z":        { "N": "0.07" },
+          "fog_probability":{ "N": "0.91" },
+          "prediction":     { "S": "Freezing" },
+          "event_start":    { "N": "1748001000000" },
+          "event_end":      { "N": "1748001014000" },
+          "duration_ms":    { "N": "14000" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":             { "S": "PATIENT#P105" },
+          "SK":             { "S": "EVENT#1748001200" },
+          "patient_id":     { "S": "P105" },
+          "timestamp":      { "N": "1748001200" },
+          "type":           { "S": "fog" },
+          "alert_flag":     { "S": "HIGH" },
+          "accel_x":        { "N": "0.08" },
+          "accel_y":        { "N": "0.06" },
+          "accel_z":        { "N": "0.05" },
+          "fog_probability":{ "N": "0.87" },
+          "prediction":     { "S": "Freezing" },
+          "event_start":    { "N": "1748001200000" },
+          "event_end":      { "N": "1748001208500" },
+          "duration_ms":    { "N": "8500" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":             { "S": "PATIENT#P105" },
+          "SK":             { "S": "EVENT#1748001350" },
+          "patient_id":     { "S": "P105" },
+          "timestamp":      { "N": "1748001350" },
+          "type":           { "S": "fog" },
+          "alert_flag":     { "S": "MEDIUM" },
+          "accel_x":        { "N": "0.28" },
+          "accel_y":        { "N": "0.22" },
+          "accel_z":        { "N": "0.17" },
+          "fog_probability":{ "N": "0.58" },
+          "prediction":     { "S": "freeze" },
+          "event_start":    { "N": "1748001350000" },
+          "event_end":      { "N": "1748001355100" },
+          "duration_ms":    { "N": "5100" }
+        }
+      }
+    },
+
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":             { "S": "PATIENT#P105" },
+          "SK":             { "S": "EVENT#1748001600" },
+          "patient_id":     { "S": "P105" },
+          "timestamp":      { "N": "1748001600" },
+          "type":           { "S": "fog" },
+          "alert_flag":     { "S": "LOW" },
+          "accel_x":        { "N": "0.54" },
+          "accel_y":        { "N": "0.60" },
+          "accel_z":        { "N": "0.46" },
+          "fog_probability":{ "N": "0.15" },
+          "prediction":     { "S": "normal" },
+          "event_start":    { "N": "1748001600000" },
+          "event_end":      { "N": "1748001600000" },
+          "duration_ms":    { "N": "0" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":             { "S": "PATIENT#P105" },
+          "SK":             { "S": "EVENT#1748001800" },
+          "patient_id":     { "S": "P105" },
+          "timestamp":      { "N": "1748001800" },
+          "type":           { "S": "fog" },
+          "alert_flag":     { "S": "HIGH" },
+          "accel_x":        { "N": "0.07" },
+          "accel_y":        { "N": "0.05" },
+          "accel_z":        { "N": "0.04" },
+          "fog_probability":{ "N": "0.94" },
+          "prediction":     { "S": "Freezing" },
+          "event_start":    { "N": "1748001800000" },
+          "event_end":      { "N": "1748001819000" },
+          "duration_ms":    { "N": "19000" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":             { "S": "PATIENT#P105" },
+          "SK":             { "S": "EVENT#1748001950" },
+          "patient_id":     { "S": "P105" },
+          "timestamp":      { "N": "1748001950" },
+          "type":           { "S": "fog" },
+          "alert_flag":     { "S": "MEDIUM" },
+          "accel_x":        { "N": "0.21" },
+          "accel_y":        { "N": "0.18" },
+          "accel_z":        { "N": "0.13" },
+          "fog_probability":{ "N": "0.67" },
+          "prediction":     { "S": "freeze" },
+          "event_start":    { "N": "1748001950000" },
+          "event_end":      { "N": "1748001958200" },
+          "duration_ms":    { "N": "8200" }
+        }
+      }
+    },
+
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":                    { "S": "PATIENT#P105" },
+          "SK":                    { "S": "EVENT#1748003000" },
+          "patient_id":            { "S": "P105" },
+          "timestamp":             { "N": "1748003000" },
+          "type":                  { "S": "bradykinesia" },
+          "alert_flag":            { "S": "HIGH" },
+          "test_type":             { "S": "fingertapping" },
+          "session_id":            { "S": "SES-P105-001" },
+          "hand":                  { "S": "right" },
+          "taps_left":             { "N": "18" },
+          "taps_right":            { "N": "14" },
+          "tap_frequency_left":    { "N": "3.6" },
+          "tap_frequency_right":   { "N": "2.8" },
+          "mean_amplitude_left":   { "N": "22.4" },
+          "mean_amplitude_right":  { "N": "15.1" },
+          "amplitude_variability": { "N": "0.41" },
+          "mean_velocity":         { "N": "88.3" },
+          "tapping_difference":    { "N": "22.2" },
+          "decrement_5":           { "N": "18.0" },
+          "decrement_7":           { "N": "26.5" },
+          "decrement_10":          { "N": "38.1" },
+          "medication":            { "S": "OFF" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":                    { "S": "PATIENT#P105" },
+          "SK":                    { "S": "EVENT#1748003600" },
+          "patient_id":            { "S": "P105" },
+          "timestamp":             { "N": "1748003600" },
+          "type":                  { "S": "bradykinesia" },
+          "alert_flag":            { "S": "MEDIUM" },
+          "test_type":             { "S": "fingertapping" },
+          "session_id":            { "S": "SES-P105-002" },
+          "hand":                  { "S": "right" },
+          "taps_left":             { "N": "22" },
+          "taps_right":            { "N": "20" },
+          "tap_frequency_left":    { "N": "4.4" },
+          "tap_frequency_right":   { "N": "4.0" },
+          "mean_amplitude_left":   { "N": "26.8" },
+          "mean_amplitude_right":  { "N": "24.2" },
+          "amplitude_variability": { "N": "0.22" },
+          "mean_velocity":         { "N": "112.6" },
+          "tapping_difference":    { "N": "9.1" },
+          "decrement_5":           { "N": "9.0" },
+          "decrement_7":           { "N": "14.2" },
+          "decrement_10":          { "N": "19.7" },
+          "medication":            { "S": "ON" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":                    { "S": "PATIENT#P105" },
+          "SK":                    { "S": "EVENT#1748004000" },
+          "patient_id":            { "S": "P105" },
+          "timestamp":             { "N": "1748004000" },
+          "type":                  { "S": "bradykinesia" },
+          "alert_flag":            { "S": "HIGH" },
+          "test_type":             { "S": "handopening" },
+          "session_id":            { "S": "SES-P105-003" },
+          "mean_velocity":         { "N": "62.4" },
+          "mean_amplitude":        { "N": "38.2" },
+          "dominant_frequency":    { "N": "1.9" },
+          "medication":            { "S": "OFF" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":                    { "S": "PATIENT#P105" },
+          "SK":                    { "S": "EVENT#1748005000" },
+          "patient_id":            { "S": "P105" },
+          "timestamp":             { "N": "1748005000" },
+          "type":                  { "S": "bradykinesia" },
+          "alert_flag":            { "S": "HIGH" },
+          "test_type":             { "S": "pronationsupination" },
+          "session_id":            { "S": "SES-P105-004" },
+          "mean_velocity":         { "N": "55.8" },
+          "mean_amplitude":        { "N": "44.6" },
+          "dominant_frequency":    { "N": "1.7" },
+          "medication":            { "S": "OFF" }
+        }
+      }
+    },
+
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":                    { "S": "PATIENT#P105" },
+          "SK":                    { "S": "EVENT#1748003200" },
+          "patient_id":            { "S": "P105" },
+          "timestamp":             { "N": "1748003200" },
+          "type":                  { "S": "bradykinesia" },
+          "alert_flag":            { "S": "LOW" },
+          "test_type":             { "S": "fingertapping" },
+          "session_id":            { "S": "SES-P105-001" },
+          "hand":                  { "S": "left" },
+          "taps_left":             { "N": "25" },
+          "taps_right":            { "N": "24" },
+          "tap_frequency_left":    { "N": "5.0" },
+          "tap_frequency_right":   { "N": "4.8" },
+          "mean_amplitude_left":   { "N": "30.1" },
+          "mean_amplitude_right":  { "N": "29.4" },
+          "amplitude_variability": { "N": "0.10" },
+          "mean_velocity":         { "N": "141.2" },
+          "tapping_difference":    { "N": "4.0" },
+          "decrement_5":           { "N": "3.8" },
+          "decrement_7":           { "N": "5.9" },
+          "decrement_10":          { "N": "8.4" },
+          "medication":            { "S": "ON" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":                    { "S": "PATIENT#P105" },
+          "SK":                    { "S": "EVENT#1748003800" },
+          "patient_id":            { "S": "P105" },
+          "timestamp":             { "N": "1748003800" },
+          "type":                  { "S": "bradykinesia" },
+          "alert_flag":            { "S": "MEDIUM" },
+          "test_type":             { "S": "fingertapping" },
+          "session_id":            { "S": "SES-P105-002" },
+          "hand":                  { "S": "right" },
+          "taps_left":             { "N": "19" },
+          "taps_right":            { "N": "17" },
+          "tap_frequency_left":    { "N": "3.8" },
+          "tap_frequency_right":   { "N": "3.4" },
+          "mean_amplitude_left":   { "N": "21.3" },
+          "mean_amplitude_right":  { "N": "18.7" },
+          "amplitude_variability": { "N": "0.33" },
+          "mean_velocity":         { "N": "97.4" },
+          "tapping_difference":    { "N": "10.5" },
+          "decrement_5":           { "N": "14.1" },
+          "decrement_7":           { "N": "20.8" },
+          "decrement_10":          { "N": "31.6" },
+          "medication":            { "S": "OFF" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":                 { "S": "PATIENT#P105" },
+          "SK":                 { "S": "EVENT#1748004200" },
+          "patient_id":         { "S": "P105" },
+          "timestamp":          { "N": "1748004200" },
+          "type":               { "S": "bradykinesia" },
+          "alert_flag":         { "S": "LOW" },
+          "test_type":          { "S": "handopening" },
+          "session_id":         { "S": "SES-P105-003" },
+          "mean_velocity":      { "N": "108.7" },
+          "mean_amplitude":     { "N": "63.5" },
+          "dominant_frequency": { "N": "3.2" },
+          "medication":         { "S": "ON" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":                 { "S": "PATIENT#P105" },
+          "SK":                 { "S": "EVENT#1748005400" },
+          "patient_id":         { "S": "P105" },
+          "timestamp":          { "N": "1748005400" },
+          "type":               { "S": "bradykinesia" },
+          "alert_flag":         { "S": "MEDIUM" },
+          "test_type":          { "S": "pronationsupination" },
+          "session_id":         { "S": "SES-P105-004" },
+          "mean_velocity":      { "N": "76.3" },
+          "mean_amplitude":     { "N": "55.8" },
+          "dominant_frequency": { "N": "2.3" },
+          "medication":         { "S": "OFF" }
+        }
+      }
+    }
+
+  ]
+}

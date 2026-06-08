@@ -1,0 +1,468 @@
+{
+  "parkinson_motor_events": [
+
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":               { "S": "PATIENT#P105" },
+          "SK":               { "S": "EVENT#1747900800000" },
+          "patient_id":       { "S": "P105" },
+          "timestamp":        { "N": "1747900800000" },
+          "type":             { "S": "tremor" },
+          "alert_flag":       { "S": "LOW" },
+          "module":           { "S": "tremor" },
+          "accel":            { "M": { "x": { "N": "0.18" }, "y": { "N": "0.22" }, "z": { "N": "0.11" } } },
+          "tremor_frequency": { "N": "2.1" },
+          "tremor_amplitude": { "N": "0.31" },
+          "tremor_class":     { "S": "normal" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":               { "S": "PATIENT#P105" },
+          "SK":               { "S": "EVENT#1747904400000" },
+          "patient_id":       { "S": "P105" },
+          "timestamp":        { "N": "1747904400000" },
+          "type":             { "S": "tremor" },
+          "alert_flag":       { "S": "LOW" },
+          "module":           { "S": "tremor" },
+          "accel":            { "M": { "x": { "N": "0.24" }, "y": { "N": "0.29" }, "z": { "N": "0.15" } } },
+          "tremor_frequency": { "N": "2.6" },
+          "tremor_amplitude": { "N": "0.45" },
+          "tremor_class":     { "S": "normal" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":               { "S": "PATIENT#P105" },
+          "SK":               { "S": "EVENT#1747908000000" },
+          "patient_id":       { "S": "P105" },
+          "timestamp":        { "N": "1747908000000" },
+          "type":             { "S": "tremor" },
+          "alert_flag":       { "S": "MEDIUM" },
+          "module":           { "S": "tremor" },
+          "accel":            { "M": { "x": { "N": "0.61" }, "y": { "N": "0.78" }, "z": { "N": "0.42" } } },
+          "tremor_frequency": { "N": "3.4" },
+          "tremor_amplitude": { "N": "0.98" },
+          "tremor_class":     { "S": "rest" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":               { "S": "PATIENT#P105" },
+          "SK":               { "S": "EVENT#1747911600000" },
+          "patient_id":       { "S": "P105" },
+          "timestamp":        { "N": "1747911600000" },
+          "type":             { "S": "tremor" },
+          "alert_flag":       { "S": "MEDIUM" },
+          "module":           { "S": "tremor" },
+          "accel":            { "M": { "x": { "N": "0.74" }, "y": { "N": "0.91" }, "z": { "N": "0.53" } } },
+          "tremor_frequency": { "N": "4.1" },
+          "tremor_amplitude": { "N": "1.24" },
+          "tremor_class":     { "S": "rest" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":               { "S": "PATIENT#P105" },
+          "SK":               { "S": "EVENT#1747915200000" },
+          "patient_id":       { "S": "P105" },
+          "timestamp":        { "N": "1747915200000" },
+          "type":             { "S": "tremor" },
+          "alert_flag":       { "S": "MEDIUM" },
+          "module":           { "S": "tremor" },
+          "accel":            { "M": { "x": { "N": "0.88" }, "y": { "N": "1.05" }, "z": { "N": "0.61" } } },
+          "tremor_frequency": { "N": "4.8" },
+          "tremor_amplitude": { "N": "1.47" },
+          "tremor_class":     { "S": "rest" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":               { "S": "PATIENT#P105" },
+          "SK":               { "S": "EVENT#1747918800000" },
+          "patient_id":       { "S": "P105" },
+          "timestamp":        { "N": "1747918800000" },
+          "type":             { "S": "tremor" },
+          "alert_flag":       { "S": "HIGH" },
+          "module":           { "S": "tremor" },
+          "accel":            { "M": { "x": { "N": "1.21" }, "y": { "N": "1.48" }, "z": { "N": "0.87" } } },
+          "tremor_frequency": { "N": "5.5" },
+          "tremor_amplitude": { "N": "1.89" },
+          "tremor_class":     { "S": "rest" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":               { "S": "PATIENT#P105" },
+          "SK":               { "S": "EVENT#1747922400000" },
+          "patient_id":       { "S": "P105" },
+          "timestamp":        { "N": "1747922400000" },
+          "type":             { "S": "tremor" },
+          "alert_flag":       { "S": "HIGH" },
+          "module":           { "S": "tremor" },
+          "accel":            { "M": { "x": { "N": "1.54" }, "y": { "N": "1.83" }, "z": { "N": "1.12" } } },
+          "tremor_frequency": { "N": "5.9" },
+          "tremor_amplitude": { "N": "2.31" },
+          "tremor_class":     { "S": "rest" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":               { "S": "PATIENT#P105" },
+          "SK":               { "S": "EVENT#1747926000000" },
+          "patient_id":       { "S": "P105" },
+          "timestamp":        { "N": "1747926000000" },
+          "type":             { "S": "tremor" },
+          "alert_flag":       { "S": "HIGH" },
+          "module":           { "S": "tremor" },
+          "accel":            { "M": { "x": { "N": "1.92" }, "y": { "N": "2.14" }, "z": { "N": "1.38" } } },
+          "tremor_frequency": { "N": "6.3" },
+          "tremor_amplitude": { "N": "2.68" },
+          "tremor_class":     { "S": "essential" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":               { "S": "PATIENT#P105" },
+          "SK":               { "S": "EVENT#1747929600000" },
+          "patient_id":       { "S": "P105" },
+          "timestamp":        { "N": "1747929600000" },
+          "type":             { "S": "tremor" },
+          "alert_flag":       { "S": "HIGH" },
+          "module":           { "S": "tremor" },
+          "accel":            { "M": { "x": { "N": "2.21" }, "y": { "N": "2.47" }, "z": { "N": "1.64" } } },
+          "tremor_frequency": { "N": "6.8" },
+          "tremor_amplitude": { "N": "2.94" },
+          "tremor_class":     { "S": "essential" }
+        }
+      }
+    },
+
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":             { "S": "PATIENT#P105" },
+          "SK":             { "S": "EVENT#1747933200000" },
+          "patient_id":     { "S": "P105" },
+          "timestamp":      { "N": "1747933200000" },
+          "type":           { "S": "fog" },
+          "alert_flag":     { "S": "LOW" },
+          "fog_class":      { "S": "normal" },
+          "fog_probability":{ "N": "0.12" },
+          "accel":          { "M": { "x": { "N": "0.48" }, "y": { "N": "0.52" }, "z": { "N": "0.39" } } },
+          "event_start":    { "N": "1747933200000" },
+          "event_end":      { "N": "1747933200000" },
+          "duration_ms":    { "N": "0" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":             { "S": "PATIENT#P105" },
+          "SK":             { "S": "EVENT#1747936800000" },
+          "patient_id":     { "S": "P105" },
+          "timestamp":      { "N": "1747936800000" },
+          "type":           { "S": "fog" },
+          "alert_flag":     { "S": "LOW" },
+          "fog_class":      { "S": "normal" },
+          "fog_probability":{ "N": "0.21" },
+          "accel":          { "M": { "x": { "N": "0.41" }, "y": { "N": "0.44" }, "z": { "N": "0.33" } } },
+          "event_start":    { "N": "1747936800000" },
+          "event_end":      { "N": "1747936800000" },
+          "duration_ms":    { "N": "0" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":             { "S": "PATIENT#P105" },
+          "SK":             { "S": "EVENT#1747940400000" },
+          "patient_id":     { "S": "P105" },
+          "timestamp":      { "N": "1747940400000" },
+          "type":           { "S": "fog" },
+          "alert_flag":     { "S": "MEDIUM" },
+          "fog_class":      { "S": "freeze" },
+          "fog_probability":{ "N": "0.64" },
+          "accel":          { "M": { "x": { "N": "0.14" }, "y": { "N": "0.11" }, "z": { "N": "0.09" } } },
+          "event_start":    { "N": "1747940400000" },
+          "event_end":      { "N": "1747940405800000" },
+          "duration_ms":    { "N": "5800" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":             { "S": "PATIENT#P105" },
+          "SK":             { "S": "EVENT#1747944000000" },
+          "patient_id":     { "S": "P105" },
+          "timestamp":      { "N": "1747944000000" },
+          "type":           { "S": "fog" },
+          "alert_flag":     { "S": "HIGH" },
+          "fog_class":      { "S": "Freezing" },
+          "fog_probability":{ "N": "0.88" },
+          "accel":          { "M": { "x": { "N": "0.07" }, "y": { "N": "0.05" }, "z": { "N": "0.04" } } },
+          "event_start":    { "N": "1747944000000" },
+          "event_end":      { "N": "1747944012000" },
+          "duration_ms":    { "N": "12000" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":             { "S": "PATIENT#P105" },
+          "SK":             { "S": "EVENT#1747947600000" },
+          "patient_id":     { "S": "P105" },
+          "timestamp":      { "N": "1747947600000" },
+          "type":           { "S": "fog" },
+          "alert_flag":     { "S": "HIGH" },
+          "fog_class":      { "S": "Freezing" },
+          "fog_probability":{ "N": "0.93" },
+          "accel":          { "M": { "x": { "N": "0.05" }, "y": { "N": "0.04" }, "z": { "N": "0.03" } } },
+          "event_start":    { "N": "1747947600000" },
+          "event_end":      { "N": "1747947618500" },
+          "duration_ms":    { "N": "18500" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":             { "S": "PATIENT#P105" },
+          "SK":             { "S": "EVENT#1747951200000" },
+          "patient_id":     { "S": "P105" },
+          "timestamp":      { "N": "1747951200000" },
+          "type":           { "S": "fog" },
+          "alert_flag":     { "S": "MEDIUM" },
+          "fog_class":      { "S": "freeze" },
+          "fog_probability":{ "N": "0.71" },
+          "accel":          { "M": { "x": { "N": "0.11" }, "y": { "N": "0.09" }, "z": { "N": "0.07" } } },
+          "event_start":    { "N": "1747951200000" },
+          "event_end":      { "N": "1747951208200" },
+          "duration_ms":    { "N": "8200" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":             { "S": "PATIENT#P105" },
+          "SK":             { "S": "EVENT#1747954800000" },
+          "patient_id":     { "S": "P105" },
+          "timestamp":      { "N": "1747954800000" },
+          "type":           { "S": "fog" },
+          "alert_flag":     { "S": "HIGH" },
+          "fog_class":      { "S": "Freezing" },
+          "fog_probability":{ "N": "0.96" },
+          "accel":          { "M": { "x": { "N": "0.04" }, "y": { "N": "0.03" }, "z": { "N": "0.02" } } },
+          "event_start":    { "N": "1747954800000" },
+          "event_end":      { "N": "1747954822000" },
+          "duration_ms":    { "N": "22000" }
+        }
+      }
+    },
+
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":                { "S": "PATIENT#P105" },
+          "SK":                { "S": "EVENT#1747958400000" },
+          "patient_id":        { "S": "P105" },
+          "timestamp":         { "N": "1747958400000" },
+          "type":              { "S": "bradykinesia" },
+          "alert_flag":        { "S": "LOW" },
+          "module":            { "S": "bradykinesia" },
+          "movement":          { "S": "fingertapping" },
+          "movement_speed":    { "N": "138.4" },
+          "movement_amplitude":{ "N": "30.2" },
+          "tap_frequency_left": { "N": "4.9" },
+          "tap_frequency_right":{ "N": "4.7" },
+          "amplitude_variability": { "N": "0.09" },
+          "decrement_5":       { "N": "3.5" },
+          "decrement_7":       { "N": "5.2" },
+          "decrement_10":      { "N": "7.8" },
+          "medication":        { "S": "ON" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":                { "S": "PATIENT#P105" },
+          "SK":                { "S": "EVENT#1747962000000" },
+          "patient_id":        { "S": "P105" },
+          "timestamp":         { "N": "1747962000000" },
+          "type":              { "S": "bradykinesia" },
+          "alert_flag":        { "S": "LOW" },
+          "module":            { "S": "bradykinesia" },
+          "movement":          { "S": "fingertapping" },
+          "movement_speed":    { "N": "124.7" },
+          "movement_amplitude":{ "N": "27.8" },
+          "tap_frequency_left": { "N": "4.5" },
+          "tap_frequency_right":{ "N": "4.3" },
+          "amplitude_variability": { "N": "0.14" },
+          "decrement_5":       { "N": "6.1" },
+          "decrement_7":       { "N": "9.4" },
+          "decrement_10":      { "N": "13.2" },
+          "medication":        { "S": "ON" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":                { "S": "PATIENT#P105" },
+          "SK":                { "S": "EVENT#1747965600000" },
+          "patient_id":        { "S": "P105" },
+          "timestamp":         { "N": "1747965600000" },
+          "type":              { "S": "bradykinesia" },
+          "alert_flag":        { "S": "MEDIUM" },
+          "module":            { "S": "bradykinesia" },
+          "movement":          { "S": "fingertapping" },
+          "movement_speed":    { "N": "96.3" },
+          "movement_amplitude":{ "N": "21.4" },
+          "tap_frequency_left": { "N": "3.7" },
+          "tap_frequency_right":{ "N": "3.5" },
+          "amplitude_variability": { "N": "0.28" },
+          "decrement_5":       { "N": "13.4" },
+          "decrement_7":       { "N": "19.8" },
+          "decrement_10":      { "N": "28.1" },
+          "medication":        { "S": "OFF" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":                { "S": "PATIENT#P105" },
+          "SK":                { "S": "EVENT#1747969200000" },
+          "patient_id":        { "S": "P105" },
+          "timestamp":         { "N": "1747969200000" },
+          "type":              { "S": "bradykinesia" },
+          "alert_flag":        { "S": "HIGH" },
+          "module":            { "S": "bradykinesia" },
+          "movement":          { "S": "fingertapping" },
+          "movement_speed":    { "N": "71.2" },
+          "movement_amplitude":{ "N": "14.6" },
+          "tap_frequency_left": { "N": "2.7" },
+          "tap_frequency_right":{ "N": "2.4" },
+          "amplitude_variability": { "N": "0.44" },
+          "decrement_5":       { "N": "22.1" },
+          "decrement_7":       { "N": "31.6" },
+          "decrement_10":      { "N": "44.8" },
+          "medication":        { "S": "OFF" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":                { "S": "PATIENT#P105" },
+          "SK":                { "S": "EVENT#1747972800000" },
+          "patient_id":        { "S": "P105" },
+          "timestamp":         { "N": "1747972800000" },
+          "type":              { "S": "bradykinesia" },
+          "alert_flag":        { "S": "LOW" },
+          "module":            { "S": "bradykinesia" },
+          "movement":          { "S": "handopening" },
+          "movement_speed":    { "N": "112.8" },
+          "movement_amplitude":{ "N": "64.3" },
+          "dominant_frequency":{ "N": "3.2" },
+          "medication":        { "S": "ON" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":                { "S": "PATIENT#P105" },
+          "SK":                { "S": "EVENT#1747976400000" },
+          "patient_id":        { "S": "P105" },
+          "timestamp":         { "N": "1747976400000" },
+          "type":              { "S": "bradykinesia" },
+          "alert_flag":        { "S": "HIGH" },
+          "module":            { "S": "bradykinesia" },
+          "movement":          { "S": "handopening" },
+          "movement_speed":    { "N": "58.4" },
+          "movement_amplitude":{ "N": "35.7" },
+          "dominant_frequency":{ "N": "1.8" },
+          "medication":        { "S": "OFF" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":                { "S": "PATIENT#P105" },
+          "SK":                { "S": "EVENT#1747980000000" },
+          "patient_id":        { "S": "P105" },
+          "timestamp":         { "N": "1747980000000" },
+          "type":              { "S": "bradykinesia" },
+          "alert_flag":        { "S": "LOW" },
+          "module":            { "S": "bradykinesia" },
+          "movement":          { "S": "pronationsupination" },
+          "movement_speed":    { "N": "101.6" },
+          "movement_amplitude":{ "N": "67.2" },
+          "dominant_frequency":{ "N": "3.0" },
+          "medication":        { "S": "ON" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":                { "S": "PATIENT#P105" },
+          "SK":                { "S": "EVENT#1747983600000" },
+          "patient_id":        { "S": "P105" },
+          "timestamp":         { "N": "1747983600000" },
+          "type":              { "S": "bradykinesia" },
+          "alert_flag":        { "S": "HIGH" },
+          "module":            { "S": "bradykinesia" },
+          "movement":          { "S": "pronationsupination" },
+          "movement_speed":    { "N": "49.3" },
+          "movement_amplitude":{ "N": "32.1" },
+          "dominant_frequency":{ "N": "1.6" },
+          "medication":        { "S": "OFF" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK":                { "S": "PATIENT#P105" },
+          "SK":                { "S": "EVENT#1747987200000" },
+          "patient_id":        { "S": "P105" },
+          "timestamp":         { "N": "1747987200000" },
+          "type":              { "S": "bradykinesia" },
+          "alert_flag":        { "S": "MEDIUM" },
+          "module":            { "S": "bradykinesia" },
+          "movement":          { "S": "pronationsupination" },
+          "movement_speed":    { "N": "78.9" },
+          "movement_amplitude":{ "N": "51.4" },
+          "dominant_frequency":{ "N": "2.4" },
+          "medication":        { "S": "OFF" }
+        }
+      }
+    }
+  ]
+}

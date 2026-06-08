@@ -1,0 +1,620 @@
+/* ── Contenedor principal ── */
+.session-container {
+  padding: 24px;
+  background: var(--c-bg-shell);
+  min-height: 100vh;
+  font-family: var(--c-font);
+  color: var(--c-navy);
+}
+
+/* ── Cabecera ── */
+.session-header {
+  background: var(--c-surface);
+  padding: 20px 24px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid var(--c-border);
+  box-shadow: 0 1px 4px rgba(11,37,69,0.07);
+}
+
+.session-header h1 {
+  margin: 0 0 14px 0;
+  color: var(--c-navy);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+/* ── Filtro de fechas ── */
+.date-filter {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.date-filter label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--c-text-sec);
+}
+
+.date-filter input {
+  padding: 8px 12px;
+  border: 1px solid var(--c-border-strong);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--c-navy);
+  background: var(--c-surface-alt);
+  transition: border-color 0.2s;
+}
+
+.date-filter input:focus {
+  outline: none;
+  border-color: var(--c-blue);
+  box-shadow: 0 0 0 3px rgba(55, 138, 221, 0.12);
+}
+
+
+/* ── Tabs principales ── */
+.tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  border: none;
+  border-bottom: 2px solid var(--c-border);
+  box-shadow: none;
+}
+
+.tab-button {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  color: var(--c-text-sec);
+  border-radius: 0;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 13px;
+  font-family: var(--c-font);
+  transition: color 0.15s;
+  white-space: nowrap;
+  position: relative;
+}
+
+.tab-button::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+  transition: background 0.15s;
+  border-radius: 2px 2px 0 0;
+}
+
+.tab-button:hover {
+  background: transparent;
+  color: var(--c-navy);
+  border-color: transparent;
+}
+
+.tab-button:hover::after {
+  background: var(--c-border-input);
+}
+
+.tab-button.active {
+  color: var(--c-blue);
+  font-weight: 600;
+  background: transparent;
+  border-color: transparent;
+}
+
+.tab-button.active::after {
+  background: var(--c-blue);
+}
+
+/* ── Contenido de tab ── */
+.tab-content {
+  background: var(--c-surface);
+  padding: 24px;
+  border-radius: 10px;
+  border: 1px solid var(--c-border);
+  box-shadow: 0 1px 4px rgba(11,37,69,0.06);
+}
+
+/* ── Wrapper de gráficas ── */
+.chart-wrapper {
+  margin-bottom: 24px;
+}
+
+.chart-wrapper h3 {
+  color: var(--c-navy);
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  padding-left: 10px;
+  border-left: 3px solid var(--c-blue);
+}
+
+.chart-wrapper h4 {
+  color: var(--c-text-sec);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 8px;
+}
+
+/* ── Estados vacíos / carga ── */
+.loading,
+.no-data,
+.no-data-tab {
+  padding: 32px 20px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--c-text-muted);
+}
+
+.error {
+  padding: 16px 20px;
+  text-align: center;
+  font-size: 14px;
+  background: var(--c-danger-bg);
+  color: var(--c-danger-text);
+  border-radius: 8px;
+  border: 1px solid #f3c6c6;
+}
+
+.no-data {
+  padding: 40px 20px;
+  background: var(--c-surface);
+  border-radius: 10px;
+}
+
+/* ── Tablas de datos ── */
+.data-table {
+  margin-top: 20px;
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--c-border);
+}
+
+.data-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.data-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--c-surface-alt);
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--c-text-sec);
+  border-bottom: 2px solid var(--c-border-strong);
+  white-space: nowrap;
+  box-shadow: 0 1px 0 var(--c-border-strong);
+}
+
+.data-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--c-border);
+  color: var(--c-navy);
+  vertical-align: middle;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table--scroll {
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.date-group-header td {
+  background: #e8edf5;
+  color: var(--c-navy);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 6px 14px;
+  border-top: 2px solid var(--c-border-strong);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.data-table tr:hover td {
+  background: var(--c-row-hover);
+}
+
+/* ── Botones de ejercicio (Brady) ── */
+.brady-exercise-btn {
+  padding: 8px 20px;
+  border: 1px solid var(--c-border-strong);
+  background: var(--c-surface);
+  color: var(--c-text-sec);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.brady-exercise-btn:hover {
+  border-color: var(--c-blue);
+  color: var(--c-navy);
+  background: var(--c-surface-alt);
+}
+
+.brady-exercise-btn.active {
+  background: var(--c-navy);
+  color: #fff;
+  border-color: var(--c-navy);
+}
+
+.brady-exercise-panel {
+  background: var(--c-surface-alt);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-top: 6px;
+}
+
+.brady-exercise-panel h3 {
+  margin: 0 0 18px 0;
+  color: var(--c-navy);
+}
+
+/* ── Stat cards ── */
+.stat-card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-top: 3px solid var(--c-blue);
+  border-radius: 8px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 10px;
+  color: var(--c-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 700;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--c-navy);
+  line-height: 1.2;
+}
+
+/* ── Badges de predicción / clasificación ── */
+.prediction-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.prediction-badge.normal {
+  background: var(--c-ok-bg);
+  color: var(--c-ok-text);
+}
+
+.prediction-badge.freezing,
+.prediction-badge.freeze,
+.prediction-badge.Freezing {
+  background: var(--c-danger-bg);
+  color: var(--c-danger-text);
+}
+
+.prediction-badge.med-on {
+  background: var(--c-ok-bg);
+  color: var(--c-ok-text);
+}
+
+.prediction-badge.med-off {
+  background: var(--c-warn-bg);
+  color: var(--c-warn-text);
+}
+
+.prediction-badge.rest {
+  background: var(--c-danger-bg);
+  color: var(--c-danger-text);
+}
+
+.prediction-badge.essential {
+  background: var(--c-warn-bg);
+  color: var(--c-warn-text);
+}
+
+
+/* ── Cabecera top row ── */
+.session-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.session-header-top h1 {
+  margin: 0;
+}
+
+
+/* ── Print-only elements (hidden on screen) ── */
+.print-only { display: none; }
+
+/* ── Orientación y márgenes del documento impreso ── */
+@page {
+  size: A4 landscape;
+  margin: 1.4cm 1.2cm;
+}
+
+/* ── Estilos de impresión ── */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    box-shadow: none !important;
+  }
+
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+
+  html, body {
+    background: #fff !important;
+    font-size: 10pt;
+    color: #000;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* ── Encabezado formal ── */
+  .print-header {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px solid #0B2545;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+  }
+
+  .print-header-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .print-header-title {
+    font-size: 16pt;
+    font-weight: 700;
+    color: #0B2545;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .print-header-sub {
+    font-size: 8pt;
+    color: #5a6a7a;
+    letter-spacing: 0.03em;
+  }
+
+  .print-header-meta {
+    text-align: right;
+    font-size: 9pt;
+    color: #333;
+    line-height: 1.7;
+  }
+
+  .print-header-meta strong {
+    color: #0B2545;
+  }
+
+  /* ── Contenedor principal ── */
+  .session-container {
+    padding: 0;
+    background: #fff;
+    min-height: unset;
+  }
+
+  /* ── Cabecera de sesión ── */
+  .session-header {
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin-bottom: 10px;
+    background: transparent;
+  }
+
+  .session-header-top h1 {
+    font-size: 13pt;
+    color: #0B2545;
+    margin-bottom: 4px;
+  }
+
+  /* ── Contenido del tab ── */
+  .tab-content {
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    background: transparent;
+  }
+
+  /* ── Tablas: quitar scroll, mostrar completo ── */
+  .data-table {
+    overflow: visible !important;
+    border: 1px solid #b0b8c4;
+    border-radius: 0;
+    margin-top: 10px;
+    page-break-inside: auto;
+  }
+
+  .data-table--scroll {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .data-table table {
+    font-size: 8pt;
+    width: 100%;
+    page-break-inside: auto;
+    border-collapse: collapse;
+  }
+
+  .data-table th {
+    position: static;
+    background: #dde3ed !important;
+    color: #0B2545 !important;
+    font-size: 7pt;
+    padding: 5px 7px;
+    border: 1px solid #b0b8c4;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .data-table td {
+    padding: 4px 7px;
+    border: 1px solid #d0d5de;
+    color: #111;
+    vertical-align: middle;
+  }
+
+  .data-table tbody tr:nth-child(even) td {
+    background: #f5f7fa !important;
+  }
+
+  .data-table tr { page-break-inside: avoid; }
+
+  .date-group-header td {
+    background: #e8edf5 !important;
+    color: #0B2545 !important;
+    font-size: 8pt;
+    border: 1px solid #b0b8c4;
+  }
+
+  /* ── Títulos de sección ── */
+  .chart-wrapper h3 {
+    font-size: 11pt;
+    color: #0B2545;
+    border-left: 3px solid #0B2545;
+    padding-left: 8px;
+    margin: 14px 0 8px;
+    page-break-after: avoid;
+  }
+
+  .chart-wrapper h4 {
+    font-size: 9pt;
+    color: #333;
+    margin: 10px 0 4px;
+    page-break-after: avoid;
+  }
+
+  /* ── Sub-panel de ejercicio ── */
+  .brady-exercise-panel {
+    background: transparent;
+    border: 1px solid #ccd3dd;
+    border-radius: 0;
+    padding: 12px 14px;
+    margin-top: 10px;
+    page-break-inside: avoid;
+  }
+
+  .brady-exercise-panel h3 {
+    font-size: 11pt;
+    margin-bottom: 10px;
+  }
+
+  /* ── Stat cards ── */
+  .stat-card {
+    border: 1px solid #ccd3dd;
+    border-top: 2px solid #0B2545;
+    background: #f5f7fa !important;
+    page-break-inside: avoid;
+  }
+
+  .stat-value { font-size: 14pt; }
+  .stat-label { font-size: 7pt; }
+
+  /* ── Badges ── */
+  .prediction-badge {
+    border: 1px solid #666;
+    background: transparent !important;
+    color: #000 !important;
+    font-size: 7pt;
+    padding: 2px 6px;
+  }
+
+  /* ── Gráficas: tamaño fijo para impresión ── */
+  .recharts-responsive-container {
+    width: 100% !important;
+    height: 260px !important;
+  }
+
+  /* ── Saltos de página ── */
+  .chart-wrapper { page-break-inside: avoid; }
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .session-container { padding: 12px; }
+
+  .date-filter {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-filter label,
+  .date-filter .btn {
+    width: 100%;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-button {
+    flex-shrink: 0;
+  }
+
+  .session-header h1 {
+    font-size: 18px;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .stat-card {
+    min-width: 120px;
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(aws lambda *)",
+      "PowerShell(Get-ChildItem C:\\\\Users\\\\LENOVO\\\\neurotrack-backend\\\\lambdas -Recurse | Where-Object { !$_.PSIsContainer } | Select-Object FullName)"
+    ]
+  }
+}

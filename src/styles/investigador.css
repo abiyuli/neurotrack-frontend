@@ -1,0 +1,48 @@
+/* ── Investigador role accent ── */
+.inv-avatar{width:30px;height:30px;border-radius:50%;background:var(--c-role-inv-avatar);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;}
+.anon-banner-i{background:var(--c-role-inv-bg);border-color:#97C459;color:var(--c-role-inv-text);}
+.anon-banner-i .anon-dot{background:var(--c-role-inv-avatar);}
+.bc-link-i{color:var(--c-role-inv-avatar);}
+
+/* ── Session table ── */
+.pat-anon{font-size:12px;font-weight:500;color:var(--c-navy);font-family:monospace;}
+.ses-id{font-size:10px;color:var(--c-text-muted);margin-top:1px;font-family:monospace;}
+tr.clickable:hover td{background:#F0F8EC;cursor:pointer;}
+
+/* ── Module pills ── */
+.mod-pills{display:flex;gap:4px;flex-wrap:nowrap;}
+.mod-pill{padding:1px 7px;border-radius:4px;font-size:10px;font-weight:400;border:none;}
+.mp-tremor{background:var(--c-mod-tremor-bg);color:var(--c-mod-tremor-text);}
+.mp-fog{background:var(--c-mod-fog-bg);color:var(--c-mod-fog-text);}
+.mp-brady{background:var(--c-mod-brady-bg);color:var(--c-mod-brady-text);}
+
+/* ── Stats (2-col grid for investigador) ── */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;flex-shrink:0;}
+
+/* ── Metric blocks ── */
+.metric-block{background:var(--c-row-hover);border:0.5px solid var(--c-border);border-radius:8px;padding:12px 14px;margin-bottom:10px;flex-shrink:0;}
+.metric-block-title{font-size:11px;font-weight:500;color:var(--c-navy);margin-bottom:10px;}
+.metric-row-inv{display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px;}
+.metric-key{color:var(--c-text-sec);}
+.metric-num{color:var(--c-navy);font-weight:500;font-family:monospace;}
+
+/* ── Export form ── */
+.export-card{background:var(--c-surface);border:0.5px solid var(--c-border);border-radius:10px;padding:20px 24px;}
+.export-title{font-size:14px;font-weight:500;color:var(--c-navy);margin-bottom:6px;}
+.export-sub{font-size:12px;color:var(--c-text-sec);margin-bottom:20px;}
+.export-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.export-field{display:flex;flex-direction:column;gap:5px;}
+.export-field-label{font-size:var(--t-label);font-weight:500;text-transform:uppercase;letter-spacing:0.05em;color:var(--c-text-sec);}
+.export-select,.export-input{padding:8px 12px;font-size:12px;border:0.5px solid var(--c-border-input);border-radius:8px;background:var(--c-input-bg);color:var(--c-navy);outline:none;font-family:inherit;}
+.export-info{background:var(--c-role-inv-bg);border:0.5px solid #97C459;border-radius:8px;padding:10px 14px;font-size:11px;color:var(--c-role-inv-text);margin-bottom:16px;line-height:1.6;}
+.btn-export{padding:10px 24px;font-size:12px;font-weight:500;background:var(--c-role-inv-text);color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit;}
+.btn-export:hover{background:var(--c-role-inv-avatar);}
+.btn-ver-i{padding:4px 10px;font-size:10px;font-weight:500;border-radius:6px;cursor:pointer;border:0.5px solid #97C459;background:var(--c-role-inv-bg);color:var(--c-role-inv-text);font-family:inherit;}
+.btn-ver-i:hover{background:#C0DD97;}
+
+/* ── Responsive mobile ── */
+@media(max-width:600px){
+  .export-grid{grid-template-columns:1fr;}
+  .stat-grid{grid-template-columns:1fr;}
+  .metric-block{margin-bottom:8px;}
+}

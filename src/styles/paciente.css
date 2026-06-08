@@ -1,0 +1,148 @@
+/* ── Portal Paciente ────────────────────────────────────────── */
+/* Sidebar y shell: ver shell.css — solo estilos de contenido aquí */
+
+/* ── Role badge & avatar (colores específicos del rol) ── */
+.pac-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--c-blue-50); color: var(--c-blue-deep);
+  font-size: 11px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── Área de contenido scrolleable ── */
+.pac-content { flex: 1; overflow-y: auto; padding: 24px 28px; }
+
+/* Tarjeta de perfil */
+.pac-profile-card {
+  background: var(--c-surface);
+  border: 0.5px solid var(--c-border);
+  border-radius: 14px;
+  padding: 20px 24px;
+  display: flex; align-items: center; gap: 20px;
+  margin-bottom: 20px;
+}
+.pac-avatar-lg {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--c-blue-50); color: var(--c-blue-deep);
+  font-size: 18px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.pac-profile-info { flex: 1; min-width: 0; }
+.pac-profile-name { font-size: 16px; font-weight: 600; color: var(--c-navy); }
+.pac-profile-id   { font-size: 11px; color: var(--c-text-muted); margin-top: 2px; }
+.pac-profile-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.pac-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; background: var(--c-bg-warm); color: var(--c-text-table);
+}
+.pac-tag-label { font-weight: 500; color: var(--c-navy); }
+
+/* KPI cards */
+.pac-kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+.pac-kpi-card {
+  background: var(--c-surface);
+  border: 0.5px solid var(--c-border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex; align-items: center; gap: 14px;
+}
+.pac-kpi-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.pac-kpi-icon-blue   { background: var(--c-blue-50); color: var(--c-blue-deep); }
+.pac-kpi-icon-green  { background: var(--c-ok-bg); color: var(--c-ok-text); }
+.pac-kpi-icon-orange { background: #FDF0E0; color: #9A5A00; }
+.pac-kpi-val   { font-size: 26px; font-weight: 600; color: var(--c-navy); line-height: 1.1; }
+.pac-kpi-label { font-size: 11px; color: var(--c-text-sec); margin-top: 2px; }
+
+/* Secciones */
+.pac-section { margin-bottom: 20px; }
+.pac-section-title {
+  font-size: var(--t-label); font-weight: 600; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--c-text-sec); margin-bottom: 10px;
+}
+
+/* Sesiones */
+.pac-session-card {
+  background: var(--c-surface); border: 0.5px solid var(--c-border);
+  border-radius: 10px; padding: 14px 18px;
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 8px;
+}
+.pac-session-date { font-size: 12px; font-weight: 500; color: var(--c-navy); min-width: 90px; }
+.pac-session-mods { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; }
+.pac-session-dur  { font-size: 11px; color: var(--c-text-muted); min-width: 55px; text-align: right; }
+.pac-session-badge {
+  font-size: 10px; font-weight: 500; padding: 2px 8px;
+  border-radius: 20px; white-space: nowrap;
+}
+.pac-badge-ok     { background: #F1EFE8; color: #5F5E5A; }
+.pac-badge-warn   { background: var(--c-warn-bg); color: var(--c-warn-text); }
+.pac-badge-danger { background: var(--c-danger-bg); color: var(--c-danger-text); }
+
+.pac-mod-pill {
+  display: inline-block; padding: 1px 7px; border-radius: 4px;
+  font-size: 10px; font-weight: 400; border: none;
+}
+
+/* Alertas */
+.pac-alert-card {
+  background: var(--c-surface); border: 0.5px solid var(--c-border);
+  border-radius: 10px; padding: 14px 18px;
+  display: flex; align-items: flex-start; gap: 14px;
+  margin-bottom: 8px;
+}
+.pac-alert-icon {
+  width: 34px; height: 34px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px;
+}
+.pac-alert-icon-tremor { background: #FDF0E0; color: #9A5A00; }
+.pac-alert-icon-fog    { background: var(--c-blue-50); color: var(--c-blue-deep); }
+.pac-alert-icon-brady  { background: var(--c-danger-bg); color: var(--c-danger-text); }
+.pac-alert-body { flex: 1; min-width: 0; }
+.pac-alert-title  { font-size: 13px; font-weight: 500; color: var(--c-navy); }
+.pac-alert-detail { font-size: 12px; color: var(--c-text-sec); margin-top: 3px; line-height: 1.4; }
+.pac-alert-meta   { display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+.pac-alert-ses    { font-size: 10px; color: var(--c-text-muted); }
+.pac-alert-ts     { font-size: 10px; color: var(--c-text-muted); }
+
+/* Módulos pills */
+.mp-tremor { background: var(--c-mod-tremor-bg); color: var(--c-mod-tremor-text); }
+.mp-fog    { background: var(--c-mod-fog-bg); color: var(--c-mod-fog-text); }
+.mp-brady  { background: var(--c-mod-brady-bg); color: var(--c-mod-brady-text); }
+
+/* Empty state */
+.pac-empty {
+  text-align: center; padding: 50px 20px;
+  color: var(--c-text-muted); font-size: 13px;
+}
+.pac-empty-icon { font-size: 32px; margin-bottom: 10px; opacity: .4; }
+
+/* Tabla sesiones */
+.pac-table-outer { border: 0.5px solid var(--c-border); border-radius: 10px; overflow: hidden; background: var(--c-surface); }
+.pac-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.pac-table thead tr { background: var(--c-surface-alt); }
+.pac-table th { padding: 8px 16px; text-align: left; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--c-text-muted); border-bottom: 0.5px solid var(--c-border); }
+.pac-table td { padding: 12px 16px; border-bottom: 0.5px solid var(--c-border-sub); color: var(--c-text-table); vertical-align: middle; }
+.pac-table tbody tr:last-child td { border-bottom: none; }
+.pac-table tbody tr:hover td { background: var(--c-row-hover); }
+
+/* ── Alert layout (main + side panel) ── */
+.pac-alert-layout { display: flex; gap: 16px; align-items: flex-start; }
+.pac-alert-side   { width: 200px; flex-shrink: 0; }
+
+/* ── Responsive mobile ── */
+@media(max-width:600px){
+  .pac-content       { padding: 14px; }
+  .pac-profile-card  { flex-direction: column; gap: 12px; }
+  .pac-kpi-grid      { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pac-kpi-val       { font-size: 22px; }
+  .pac-table-outer   { overflow-x: auto; }
+  .pac-alert-layout  { flex-direction: column; }
+  .pac-alert-side    { width: 100%; }
+}

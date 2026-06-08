@@ -4,16 +4,25 @@ node_modules/
 # Build
 dist/
 
-# Variables de entorno (nunca subir credenciales)
+# Variables de entorno
 .env
 .env.local
 .env.*.local
 
-# Editor
+# Claude Code (configuración interna)
+.claude/
+
+# Archivos de datos de prueba locales
+*.json
+!package.json
+!package-lock.json
+
+# Archivos comprimidos
+*.zip
+
+# Editor / OS
 .vscode/
 .idea/
-
-# OS
 .DS_Store
 Thumbs.db
 

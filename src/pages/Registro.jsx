@@ -16,7 +16,7 @@ export default function Registro() {
     nombre: '', dni: '', telefono: '', email: '', password: '', cmp: '', codigoInstitucional: '',
   })
   const [error,       setError]       = useState('')
-  const [fieldErrors, setFieldErrors] = useState({ nombre: '', dni: '', telefono: '', password: '' })
+  const [fieldErrors, setFieldErrors] = useState({ nombre: '', dni: '', telefono: '', password: '', email: '', cmp: '', codigoInstitucional: '' })
   const [loading,     setLoading]     = useState(false)
 
   const roleData = ROLES.find(r => r.key === selectedRole)
@@ -32,20 +32,30 @@ export default function Registro() {
   }
 
   function validateNombre(val) {
-    const palabras = val.trim().split(/\s+/).filter(Boolean)
-    if (!val.trim())         return 'Este campo es obligatorio.'
-    if (palabras.length < 2) return 'Ingresa al menos nombre y apellido.'
+    const clean = val.trim()
+    if (!clean) return 'Este campo es obligatorio.'
+    if (clean.length > 100) return 'El nombre no puede superar 100 caracteres.'
+    if (!/^[a-záéíóúüñA-ZÁÉÍÓÚÜÑ\s'\-]+$/.test(clean)) return 'Solo se permiten letras, espacios, apóstrofes y guiones.'
+    if (clean.split(/\s+/).filter(Boolean).length < 2) return 'Ingresa al menos nombre y apellido.'
     return ''
   }
 
   function validateDni(val) {
-    if (!val.trim())              return 'Este campo es obligatorio.'
-    if (!/^\d{8}$/.test(val.trim())) return 'El DNI debe tener exactamente 8 dígitos numéricos.'
+    if (!val.trim())                    return 'Este campo es obligatorio.'
+    if (!/^\d{8}$/.test(val.trim()))   return 'El DNI debe tener exactamente 8 dígitos numéricos.'
+    return ''
+  }
+
+  function validateEmail(val) {
+    if (!val.trim())                            return 'El correo electrónico es obligatorio.'
+    if (val.trim().length > 150)                return 'El correo no puede superar 150 caracteres.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val.trim())) return 'Ingresa un correo válido (ej. usuario@correo.com).'
     return ''
   }
 
   function validatePassword(val) {
     if (!val) return 'La contraseña es obligatoria.'
+    if (val.length > 128) return 'La contraseña no puede superar 128 caracteres.'
     const missing = []
     if (val.length < 8)                                        missing.push('mínimo 8 caracteres')
     if (!/[A-Z]/.test(val))                                    missing.push('una letra mayúscula')
@@ -57,8 +67,24 @@ export default function Registro() {
 
   function validateTelefono(val) {
     const digits = val.replace(/\s+/g, '')
-    if (!digits)           return 'Este campo es obligatorio.'
-    if (!/^\d{9}$/.test(digits)) return 'Ingresa los 9 dígitos de tu número (sin el +51).'
+    if (!digits)                          return 'Este campo es obligatorio.'
+    if (!/^\d{9}$/.test(digits))         return 'Ingresa exactamente 9 dígitos (sin el +51).'
+    if (!/^9/.test(digits))              return 'Los números móviles peruanos comienzan con 9.'
+    return ''
+  }
+
+  function validateCmp(val) {
+    if (selectedRole !== 'medico') return ''
+    if (!val.trim())               return 'El número de CMP es obligatorio para médicos.'
+    if (!/^\d{5,6}$/.test(val.trim())) return 'El CMP debe tener 5 o 6 dígitos numéricos. Ej. 12345'
+    return ''
+  }
+
+  function validateCodigoInstitucional(val) {
+    if (selectedRole !== 'investigador') return ''
+    if (!val.trim())                     return 'El código institucional es obligatorio para investigadores.'
+    if (val.trim().length < 4)           return 'Ingresa al menos 4 caracteres.'
+    if (val.trim().length > 50)          return 'El código no puede superar 50 caracteres.'
     return ''
   }
 
@@ -68,16 +94,22 @@ export default function Registro() {
     setFieldErrors(p => ({ ...p, nombre: validateNombre(formatted) }))
   }
   function blurDni()      { setFieldErrors(p => ({ ...p, dni:      validateDni(form.dni) })) }
+  function blurEmail()    { setFieldErrors(p => ({ ...p, email:    validateEmail(form.email) })) }
   function blurTelefono() { setFieldErrors(p => ({ ...p, telefono: validateTelefono(form.telefono) })) }
   function blurPassword() { setFieldErrors(p => ({ ...p, password: validatePassword(form.password) })) }
+  function blurCmp()      { setFieldErrors(p => ({ ...p, cmp:      validateCmp(form.cmp) })) }
+  function blurCodigo()   { setFieldErrors(p => ({ ...p, codigoInstitucional: validateCodigoInstitucional(form.codigoInstitucional) })) }
 
   async function handleSubmit() {
     const errNombre   = validateNombre(form.nombre)
     const errDni      = validateDni(form.dni)
+    const errEmail    = validateEmail(form.email)
     const errTelefono = validateTelefono(form.telefono)
     const errPassword = validatePassword(form.password)
-    setFieldErrors({ nombre: errNombre, dni: errDni, telefono: errTelefono, password: errPassword })
-    if (errNombre || errDni || errTelefono || errPassword) return
+    const errCmp      = validateCmp(form.cmp)
+    const errCodigo   = validateCodigoInstitucional(form.codigoInstitucional)
+    setFieldErrors({ nombre: errNombre, dni: errDni, telefono: errTelefono, password: errPassword, email: errEmail, cmp: errCmp, codigoInstitucional: errCodigo })
+    if (errNombre || errDni || errEmail || errTelefono || errPassword || errCmp || errCodigo) return
 
     if (!selectedRole) { setError('Selecciona un rol para continuar.'); return }
 
@@ -146,6 +178,8 @@ export default function Registro() {
         .phone-wrap.invalid{border-color:#E24B4A !important;background:#FFF8F8;}
         .phone-prefix{padding:10px 10px 10px 14px;font-size:13px;color:#5B7FA6;font-weight:500;white-space:nowrap;user-select:none;}
         .phone-input{flex:1;padding:10px 14px 10px 4px;font-size:13px;border:none;background:transparent;color:#0B2545;outline:none;font-family:inherit;}
+        .field-hint{display:flex;align-items:center;gap:5px;margin-top:4px;font-size:10px;color:#7A8FA8;line-height:1.4;}
+        .hint-icon{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;border:1px solid #93C3F0;color:#1D5FA8;font-size:8px;font-weight:700;flex-shrink:0;}
         @media(max-width:600px){
           .reg-center{padding:20px 14px;}
           .brand-name{font-size:20px;}
@@ -171,13 +205,18 @@ export default function Registro() {
               <label className="field-label">Nombre completo</label>
               <input
                 className={`input-field${fieldErrors.nombre ? ' invalid' : ''}`}
-                type="text" placeholder="Nombre Apellido"
+                type="text" placeholder="Nombre Apellido" maxLength={100}
                 value={form.nombre} onChange={set('nombre')} onBlur={blurNombre} disabled={loading}
               />
-              {fieldErrors.nombre && (
+              {fieldErrors.nombre ? (
                 <div className="field-bubble" role="alert">
                   <span className="field-bubble-dot" />
                   {fieldErrors.nombre}
+                </div>
+              ) : (
+                <div className="field-hint">
+                  <span className="hint-icon">i</span>
+                  Solo letras y espacios · Ej. Carlos Ramírez
                 </div>
               )}
             </div>
@@ -185,13 +224,18 @@ export default function Registro() {
               <label className="field-label">DNI</label>
               <input
                 className={`input-field${fieldErrors.dni ? ' invalid' : ''}`}
-                type="text" placeholder="12345678" maxLength={8}
+                type="text" placeholder="12345678" maxLength={8} inputMode="numeric"
                 value={form.dni} onChange={set('dni')} onBlur={blurDni} disabled={loading}
               />
-              {fieldErrors.dni && (
+              {fieldErrors.dni ? (
                 <div className="field-bubble" role="alert">
                   <span className="field-bubble-dot" />
                   {fieldErrors.dni}
+                </div>
+              ) : (
+                <div className="field-hint">
+                  <span className="hint-icon">i</span>
+                  Exactamente 8 dígitos numéricos
                 </div>
               )}
             </div>
@@ -199,8 +243,22 @@ export default function Registro() {
 
           <div className="field-wrap">
             <label className="field-label">Correo electrónico</label>
-            <input className="input-field" type="email" placeholder="usuario@correo.com"
-              value={form.email} onChange={set('email')} disabled={loading} autoComplete="email" />
+            <input
+              className={`input-field${fieldErrors.email ? ' invalid' : ''}`}
+              type="email" placeholder="usuario@correo.com" maxLength={150}
+              value={form.email} onChange={set('email')} onBlur={blurEmail} disabled={loading} autoComplete="email"
+            />
+            {fieldErrors.email ? (
+              <div className="field-bubble" role="alert">
+                <span className="field-bubble-dot" />
+                {fieldErrors.email}
+              </div>
+            ) : (
+              <div className="field-hint">
+                <span className="hint-icon">i</span>
+                Ej. usuario@correo.com
+              </div>
+            )}
           </div>
 
           <div className="field-wrap">
@@ -209,17 +267,22 @@ export default function Registro() {
               <span className="phone-prefix">+51</span>
               <input
                 className="phone-input"
-                type="tel" placeholder="999 999 999" maxLength={11}
+                type="tel" placeholder="987 654 321" maxLength={9} inputMode="numeric"
                 value={form.telefono}
                 onChange={set('telefono')}
                 onBlur={blurTelefono}
                 disabled={loading}
               />
             </div>
-            {fieldErrors.telefono && (
+            {fieldErrors.telefono ? (
               <div className="field-bubble" role="alert">
                 <span className="field-bubble-dot" />
                 {fieldErrors.telefono}
+              </div>
+            ) : (
+              <div className="field-hint">
+                <span className="hint-icon">i</span>
+                9 dígitos, empezando con 9 · Ej. 987 654 321
               </div>
             )}
           </div>
@@ -273,16 +336,42 @@ export default function Registro() {
 
             <div className={`extra-field${selectedRole === 'medico' ? ' visible' : ''}`}>
               <label className="field-label">Número de CMP</label>
-              <input className="input-field" type="text" placeholder="Ej. 123456" maxLength={10}
-                value={form.cmp} onChange={set('cmp')} disabled={loading} />
-              <span className="extra-hint">Colegio Médico del Perú — se usará para validar tu cuenta</span>
+              <input
+                className={`input-field${fieldErrors.cmp ? ' invalid' : ''}`}
+                type="text" placeholder="Ej. 12345" maxLength={6} inputMode="numeric"
+                value={form.cmp} onChange={set('cmp')} onBlur={blurCmp} disabled={loading}
+              />
+              {fieldErrors.cmp ? (
+                <div className="field-bubble" role="alert">
+                  <span className="field-bubble-dot" />
+                  {fieldErrors.cmp}
+                </div>
+              ) : (
+                <div className="field-hint">
+                  <span className="hint-icon">i</span>
+                  5 o 6 dígitos · Colegio Médico del Perú
+                </div>
+              )}
             </div>
 
             <div className={`extra-field${selectedRole === 'investigador' ? ' visible' : ''}`}>
               <label className="field-label">Código institucional</label>
-              <input className="input-field" type="text" placeholder="Ej. UPCH-2024-001"
-                value={form.codigoInstitucional} onChange={set('codigoInstitucional')} disabled={loading} />
-              <span className="extra-hint">Código asignado por tu institución de investigación</span>
+              <input
+                className={`input-field${fieldErrors.codigoInstitucional ? ' invalid' : ''}`}
+                type="text" placeholder="Ej. UPCH-2024-001" maxLength={50}
+                value={form.codigoInstitucional} onChange={set('codigoInstitucional')} onBlur={blurCodigo} disabled={loading}
+              />
+              {fieldErrors.codigoInstitucional ? (
+                <div className="field-bubble" role="alert">
+                  <span className="field-bubble-dot" />
+                  {fieldErrors.codigoInstitucional}
+                </div>
+              ) : (
+                <div className="field-hint">
+                  <span className="hint-icon">i</span>
+                  Código asignado por tu institución · mín. 4 caracteres
+                </div>
+              )}
             </div>
 
             {roleData?.type === 'instant' && (

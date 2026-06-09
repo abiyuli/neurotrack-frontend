@@ -6,12 +6,12 @@ import api from '../../api/client'
 
 // Campos genéricos — nombre/dni/telefono/edad se renderizan aparte con validación especial
 const CAMPOS = [
-  { key: 'medicacion',         label: 'Medicación',         type: 'text' },
-  { key: 'dosis',              label: 'Dosis',              type: 'text' },
-  { key: 'diagnostico',        label: 'Diagnóstico',        type: 'text' },
-  { key: 'tiempo_diagnostico', label: 'Tiempo diagnóstico', type: 'text' },
-  { key: 'estado',             label: 'Estado',             type: 'select', options: ['Activo','Inactivo'] },
-  { key: 'comorbilidades',     label: 'Comorbilidades',     type: 'textarea' },
+  { key: 'medicacion',         label: 'Medicación',         type: 'text',     maxLength: 120, hint: 'Ej. Levodopa, Carbidopa' },
+  { key: 'dosis',              label: 'Dosis',              type: 'text',     maxLength: 80,  hint: 'Ej. 250 mg · 3 veces al día' },
+  { key: 'diagnostico',        label: 'Diagnóstico',        type: 'text',     maxLength: 200, hint: 'Ej. Parkinson idiopático estadio II' },
+  { key: 'tiempo_diagnostico', label: 'Tiempo diagnóstico', type: 'text',     maxLength: 50,  hint: 'Ej. 2 años, 18 meses' },
+  { key: 'estado',             label: 'Estado',             type: 'select',   options: ['Activo','Inactivo'] },
+  { key: 'comorbilidades',     label: 'Comorbilidades',     type: 'textarea', maxLength: 500, hint: 'Ej. Hipertensión, Diabetes tipo 2' },
 ]
 
 const stripPrefix = (tel) => (tel || '').replace(/^\+51\s?/, '')
@@ -49,27 +49,31 @@ export default function FichaPaciente() {
       .split(' ').map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ')
   }
   function validateNombre(val) {
-    const palabras = val.trim().split(/\s+/).filter(Boolean)
-    if (!val.trim())         return 'Este campo es obligatorio.'
-    if (palabras.length < 2) return 'Ingresa al menos nombre y apellido.'
+    const clean = val.trim()
+    if (!clean) return 'Este campo es obligatorio.'
+    if (clean.length > 100) return 'El nombre no puede superar 100 caracteres.'
+    if (!/^[a-záéíóúüñA-ZÁÉÍÓÚÜÑ\s'\-]+$/.test(clean)) return 'Solo se permiten letras, espacios, apóstrofes y guiones.'
+    if (clean.split(/\s+/).filter(Boolean).length < 2) return 'Ingresa al menos nombre y apellido.'
     return ''
   }
   function validateDni(val) {
     if (!val.trim())                    return 'Este campo es obligatorio.'
-    if (!/^\d{8}$/.test(val.trim()))    return 'El DNI debe tener exactamente 8 dígitos numéricos.'
+    if (!/^\d{8}$/.test(val.trim()))   return 'El DNI debe tener exactamente 8 dígitos numéricos.'
     return ''
   }
   function validateTelefono(val) {
     const digits = val.replace(/\s+/g, '')
     if (!digits)                        return 'Este campo es obligatorio.'
-    if (!/^\d{9}$/.test(digits))        return 'Ingresa los 9 dígitos de tu número (sin el +51).'
+    if (!/^\d{9}$/.test(digits))       return 'Ingresa exactamente 9 dígitos (sin el +51).'
+    if (!/^9/.test(digits))            return 'Los números móviles peruanos comienzan con 9.'
     return ''
   }
   function validateEdad(val) {
     const s = String(val).trim()
     if (!s) return ''
+    if (!/^\d+$/.test(s)) return 'La edad debe ser un número entero.'
     const n = Number(s)
-    if (!Number.isInteger(n) || n < 0 || n > 120) return 'Ingresa una edad válida entre 0 y 120 años (número entero).'
+    if (n < 0 || n > 120) return 'Ingresa una edad válida entre 0 y 120 años.'
     return ''
   }
   function blurEdad() { setFieldErrors(p => ({ ...p, edad: validateEdad(form.edad) })) }
@@ -181,6 +185,12 @@ export default function FichaPaciente() {
         .bubble-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
         .bubble-title{font-weight:600;margin-bottom:2px;}
         @keyframes bubbleIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+        .field-hint{display:flex;align-items:center;gap:5px;margin-top:4px;font-size:10px;color:var(--c-text-muted);line-height:1.4;}
+        .hint-icon{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;border:1px solid #93C3F0;color:var(--c-blue);font-size:8px;font-weight:700;flex-shrink:0;}
+        .char-counter{font-size:10px;color:var(--c-text-muted);text-align:right;margin-top:3px;}
+        .char-counter.near{color:var(--c-warn-text);}
+        .char-counter.over{color:var(--c-danger-text);font-weight:600;}
+        .form-group-wrap{display:flex;flex-direction:column;gap:0;}
         @media(max-width:600px){
           .ficha-topbar{padding:11px 16px;}
           .breadcrumb{padding:9px 16px;}
@@ -278,16 +288,21 @@ export default function FichaPaciente() {
                 <label className="form-label">Nombre completo</label>
                 <input
                   className={`form-input${fieldErrors.nombre ? ' invalid' : ''}`}
-                  type="text" placeholder="Nombre Apellido"
+                  type="text" placeholder="Nombre Apellido" maxLength={100}
                   value={form.nombre}
                   disabled={!editando}
                   onChange={setField('nombre')}
                   onBlur={blurNombre}
                 />
-                {fieldErrors.nombre && (
+                {fieldErrors.nombre ? (
                   <div className="field-bubble">
                     <span className="field-bubble-dot" />
                     {fieldErrors.nombre}
+                  </div>
+                ) : editando && (
+                  <div className="field-hint">
+                    <span className="hint-icon">i</span>
+                    Solo letras y espacios · Ej. Carlos Ramírez Torres
                   </div>
                 )}
               </div>
@@ -297,16 +312,21 @@ export default function FichaPaciente() {
                 <label className="form-label">DNI</label>
                 <input
                   className={`form-input${fieldErrors.dni ? ' invalid' : ''}`}
-                  type="text" placeholder="12345678" maxLength={8}
+                  type="text" placeholder="12345678" maxLength={8} inputMode="numeric"
                   value={form.dni}
                   disabled={!editando}
                   onChange={setField('dni')}
                   onBlur={blurDni}
                 />
-                {fieldErrors.dni && (
+                {fieldErrors.dni ? (
                   <div className="field-bubble">
                     <span className="field-bubble-dot" />
                     {fieldErrors.dni}
+                  </div>
+                ) : editando && (
+                  <div className="field-hint">
+                    <span className="hint-icon">i</span>
+                    Exactamente 8 dígitos numéricos
                   </div>
                 )}
               </div>
@@ -318,17 +338,22 @@ export default function FichaPaciente() {
                   <span className="phone-prefix">+51</span>
                   <input
                     className="phone-input"
-                    type="tel" placeholder="999 999 999" maxLength={11}
+                    type="tel" placeholder="987 654 321" maxLength={9} inputMode="numeric"
                     value={form.telefono}
                     disabled={!editando}
                     onChange={setField('telefono')}
                     onBlur={blurTelefono}
                   />
                 </div>
-                {fieldErrors.telefono && (
+                {fieldErrors.telefono ? (
                   <div className="field-bubble">
                     <span className="field-bubble-dot" />
                     {fieldErrors.telefono}
+                  </div>
+                ) : editando && (
+                  <div className="field-hint">
+                    <span className="hint-icon">i</span>
+                    9 dígitos, empezando con 9 · Ej. 987 654 321
                   </div>
                 )}
               </div>
@@ -338,55 +363,90 @@ export default function FichaPaciente() {
                 <label className="form-label">Edad</label>
                 <input
                   className={`form-input${fieldErrors.edad ? ' invalid' : ''}`}
-                  type="number" placeholder="0 – 120" min={0} max={120} step={1}
+                  type="text" placeholder="0 – 120" inputMode="numeric" maxLength={3}
                   value={form.edad}
                   disabled={!editando}
-                  onChange={setField('edad')}
+                  onChange={e => {
+                    const v = e.target.value
+                    if (v === '' || /^\d+$/.test(v)) setField('edad')(e)
+                  }}
                   onBlur={blurEdad}
                 />
-                {fieldErrors.edad && (
+                {fieldErrors.edad ? (
                   <div className="field-bubble">
                     <span className="field-bubble-dot" />
                     {fieldErrors.edad}
                   </div>
+                ) : editando && (
+                  <div className="field-hint">
+                    <span className="hint-icon">i</span>
+                    Número entero entre 0 y 120
+                  </div>
                 )}
               </div>
 
-              {CAMPOS.map(campo => (
-                <div
-                  key={campo.key}
-                  className={`form-group ${campo.type === 'textarea' ? 'full' : ''}`}
-                >
-                  <label className="form-label">{campo.label}</label>
-                  {campo.type === 'textarea' ? (
-                    <textarea
-                      className="form-textarea"
-                      value={form[campo.key]}
-                      disabled={!editando}
-                      onChange={e => setForm({...form, [campo.key]: e.target.value})}
-                    />
-                  ) : campo.type === 'select' ? (
-                    <select
-                      className="form-select"
-                      value={form[campo.key]}
-                      disabled={!editando}
-                      onChange={e => setForm({...form, [campo.key]: e.target.value})}
-                    >
-                      {campo.options.map(op => (
-                        <option key={op} value={op}>{op}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      className="form-input"
-                      type={campo.type}
-                      value={form[campo.key]}
-                      disabled={!editando}
-                      onChange={e => setForm({...form, [campo.key]: e.target.value})}
-                    />
-                  )}
-                </div>
-              ))}
+              {CAMPOS.map(campo => {
+                const val = String(form[campo.key] ?? '')
+                const overLimit = campo.maxLength && val.length > campo.maxLength * 0.9
+                return (
+                  <div
+                    key={campo.key}
+                    className={`form-group ${campo.type === 'textarea' ? 'full' : ''}`}
+                  >
+                    <label className="form-label">{campo.label}</label>
+                    {campo.type === 'textarea' ? (
+                      <>
+                        <textarea
+                          className="form-textarea"
+                          value={form[campo.key]}
+                          maxLength={campo.maxLength}
+                          disabled={!editando}
+                          onChange={e => setForm({...form, [campo.key]: e.target.value})}
+                        />
+                        {editando && campo.maxLength && (
+                          <div className={`char-counter${val.length >= campo.maxLength ? ' over' : overLimit ? ' near' : ''}`}>
+                            {val.length}/{campo.maxLength}
+                          </div>
+                        )}
+                        {editando && campo.hint && (
+                          <div className="field-hint">
+                            <span className="hint-icon">i</span>
+                            {campo.hint}
+                          </div>
+                        )}
+                      </>
+                    ) : campo.type === 'select' ? (
+                      <select
+                        className="form-select"
+                        value={form[campo.key]}
+                        disabled={!editando}
+                        onChange={e => setForm({...form, [campo.key]: e.target.value})}
+                      >
+                        {campo.options.map(op => (
+                          <option key={op} value={op}>{op}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <>
+                        <input
+                          className="form-input"
+                          type={campo.type}
+                          value={form[campo.key]}
+                          maxLength={campo.maxLength}
+                          disabled={!editando}
+                          onChange={e => setForm({...form, [campo.key]: e.target.value})}
+                        />
+                        {editando && campo.hint && (
+                          <div className="field-hint">
+                            <span className="hint-icon">i</span>
+                            {campo.hint}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )
+              })}
             </div>
 
             {editando && (

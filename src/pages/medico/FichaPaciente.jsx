@@ -16,10 +16,13 @@ const CAMPOS = [
 
 const stripPrefix = (tel) => (tel || '').replace(/^\+51\s?/, '')
 
+const MAX_CUIDADORES = 4
+
 const VACIO = {
   nombre:'', edad:'', dni:'', telefono:'', email:'',
   medicacion:'', dosis:'', diagnostico:'',
-  tiempo_diagnostico:'', estado:'Activo', comorbilidades:''
+  tiempo_diagnostico:'', estado:'Activo', comorbilidades:'',
+  cuidadores: []
 }
 
 export default function FichaPaciente() {
@@ -36,13 +39,16 @@ export default function FichaPaciente() {
     if (!esNuevo && !paciente) navigate('/medico', { replace: true })
   }, [])
 
-  const initForm = paciente ? { ...paciente, telefono: stripPrefix(paciente.telefono) } : VACIO
+  const initForm = paciente
+    ? { ...paciente, telefono: stripPrefix(paciente.telefono), cuidadores: paciente.cuidadores || [] }
+    : VACIO
   const [form, setForm] = useState(initForm)
   const [editando, setEditando] = useState(esNuevo)
   const [loading,   setLoading]   = useState(false)
   const [error,     setError]     = useState('')
   const [exito,     setExito]     = useState('')
-  const [fieldErrors, setFieldErrors] = useState({ nombre: '', dni: '', telefono: '', edad: '', email: '' })
+  const [fieldErrors,      setFieldErrors]      = useState({ nombre: '', dni: '', telefono: '', edad: '', email: '' })
+  const [cuidadoresErrors, setCuidadoresErrors] = useState([])
 
   function toTitleCase(val) {
     return val.trim().replace(/\s+/g, ' ')
@@ -82,6 +88,34 @@ export default function FichaPaciente() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val.trim())) return 'Ingresa un correo válido (ej. usuario@correo.com).'
     return ''
   }
+  function validateCuidadorEmail(val) {
+    if (!val.trim()) return ''
+    if (val.trim().length > 150) return 'El correo no puede superar 150 caracteres.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val.trim())) return 'Correo inválido.'
+    return ''
+  }
+  function addCuidador() {
+    if (form.cuidadores.length >= MAX_CUIDADORES) return
+    setForm(p => ({ ...p, cuidadores: [...p.cuidadores, ''] }))
+    setCuidadoresErrors(p => [...p, ''])
+  }
+  function removeCuidador(idx) {
+    setForm(p => ({ ...p, cuidadores: p.cuidadores.filter((_, i) => i !== idx) }))
+    setCuidadoresErrors(p => p.filter((_, i) => i !== idx))
+  }
+  function updateCuidador(idx, val) {
+    setForm(p => {
+      const next = [...p.cuidadores]; next[idx] = val; return { ...p, cuidadores: next }
+    })
+    if (cuidadoresErrors[idx]) {
+      setCuidadoresErrors(p => { const next = [...p]; next[idx] = ''; return next })
+    }
+  }
+  function blurCuidador(idx) {
+    const err = validateCuidadorEmail(form.cuidadores[idx])
+    setCuidadoresErrors(p => { const next = [...p]; next[idx] = err; return next })
+  }
+
   function blurEdad()  { setFieldErrors(p => ({ ...p, edad:  validateEdad(form.edad) })) }
   function blurEmail() { setFieldErrors(p => ({ ...p, email: validateEmail(form.email, esNuevo) })) }
   function blurNombre() {
@@ -112,8 +146,10 @@ export default function FichaPaciente() {
     const errTelefono = validateTelefono(form.telefono)
     const errEdad     = validateEdad(form.edad)
     const errEmail    = validateEmail(form.email, esNuevo)
+    const errsCuidadores = form.cuidadores.map(c => validateCuidadorEmail(c))
     setFieldErrors({ nombre: errNombre, dni: errDni, telefono: errTelefono, edad: errEdad, email: errEmail })
-    if (errNombre || errDni || errTelefono || errEdad || errEmail) return
+    setCuidadoresErrors(errsCuidadores)
+    if (errNombre || errDni || errTelefono || errEdad || errEmail || errsCuidadores.some(Boolean)) return
     setLoading(true)
     try {
       const payload = { ...form, telefono: '+51' + form.telefono.replace(/\s+/g, '') }
@@ -208,6 +244,16 @@ export default function FichaPaciente() {
         .link-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
         .link-dot.on{background:#2A9E6A;}
         .link-dot.off{background:#9CA3AF;}
+        .cuidadores-list{display:flex;flex-direction:column;gap:8px;margin-top:6px;}
+        .cuidador-row{display:flex;align-items:flex-start;gap:8px;}
+        .cuidador-num{width:22px;height:22px;border-radius:50%;background:var(--c-navy);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:11px;}
+        .cuidador-remove{width:28px;height:28px;border-radius:6px;border:1px solid var(--c-border-strong);background:var(--c-surface);color:var(--c-text-sec);font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:8px;transition:background .15s,color .15s;}
+        .cuidador-remove:hover{background:#FFF0F0;color:var(--c-danger);border-color:var(--c-danger);}
+        .btn-add-cuidador{display:flex;align-items:center;gap:6px;padding:8px 14px;border:1.5px dashed var(--c-border-strong);border-radius:8px;background:transparent;color:var(--c-blue);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:border-color .15s,background .15s;width:100%;}
+        .btn-add-cuidador:hover{border-color:var(--c-blue);background:#EBF3FD;}
+        .btn-add-cuidador:disabled{opacity:0.4;cursor:not-allowed;}
+        .cuidador-pill{display:flex;align-items:center;gap:6px;padding:4px 8px;background:var(--c-surface-alt);border:1px solid var(--c-border);border-radius:20px;font-size:11px;color:var(--c-navy);margin-bottom:4px;}
+        .cuidador-pill-dot{width:6px;height:6px;border-radius:50%;background:#2A9E6A;flex-shrink:0;}
         @media(max-width:600px){
           .ficha-topbar{padding:11px 16px;}
           .breadcrumb{padding:9px 16px;}
@@ -284,6 +330,18 @@ export default function FichaPaciente() {
                   <span className={`link-dot${form.email ? ' on' : ' off'}`} />
                   {form.email ? 'Cuenta vinculada' : 'Sin cuenta vinculada'}
                 </div>
+                {(form.cuidadores?.length > 0) && (
+                  <>
+                    <div className="ficha-div" style={{ marginTop: 10 }} />
+                    <div className="ficha-label" style={{ marginBottom: 6 }}>Cuidadores</div>
+                    {form.cuidadores.filter(c => c.trim()).map((c, i) => (
+                      <div key={i} className="cuidador-pill">
+                        <span className="cuidador-pill-dot" />
+                        {c}
+                      </div>
+                    ))}
+                  </>
+                )}
                 {!esNuevo && !editando && (
   <>
     <button className="btn btn-secondary" style={{ width: '100%', marginTop: 12 }} onClick={() => setEditando(true)}>
@@ -450,6 +508,69 @@ export default function FichaPaciente() {
                 )}
               </div>
 
+              {/* Cuidadores — hasta 4 */}
+              <div className="form-group full">
+                {editando && (
+                  <div className="link-callout" style={{ background: '#F0F9F4', borderColor: '#7ECFB0', color: '#054E38' }}>
+                    <span className="link-callout-icon">👥</span>
+                    <div>
+                      <strong>Cuidadores asignados</strong><br />
+                      Ingresa el correo de cada cuidador. Deben coincidir con el correo con que se registraron en NeuroTrack.
+                      Puedes asignar hasta {MAX_CUIDADORES} cuidadores.
+                    </div>
+                  </div>
+                )}
+                <label className="form-label" style={{ marginTop: editando ? 10 : 0 }}>
+                  Cuidadores ({form.cuidadores?.filter(c => c.trim()).length || 0}/{MAX_CUIDADORES})
+                </label>
+
+                <div className="cuidadores-list">
+                  {form.cuidadores?.map((correo, idx) => (
+                    <div key={idx} className="cuidador-row">
+                      <div className="cuidador-num">{idx + 1}</div>
+                      <div style={{ flex: 1 }}>
+                        <input
+                          className={`form-input${cuidadoresErrors[idx] ? ' invalid' : ''}`}
+                          type="email"
+                          placeholder={`cuidador${idx + 1}@correo.com`}
+                          maxLength={150}
+                          value={correo}
+                          disabled={!editando}
+                          onChange={e => updateCuidador(idx, e.target.value)}
+                          onBlur={() => blurCuidador(idx)}
+                        />
+                        {cuidadoresErrors[idx] && (
+                          <div className="field-bubble">
+                            <span className="field-bubble-dot" />
+                            {cuidadoresErrors[idx]}
+                          </div>
+                        )}
+                      </div>
+                      {editando && (
+                        <button className="cuidador-remove" onClick={() => removeCuidador(idx)} title="Quitar cuidador">×</button>
+                      )}
+                    </div>
+                  ))}
+
+                  {editando && (
+                    <button
+                      className="btn-add-cuidador"
+                      onClick={addCuidador}
+                      disabled={form.cuidadores?.length >= MAX_CUIDADORES}
+                    >
+                      + Agregar cuidador
+                      {form.cuidadores?.length >= MAX_CUIDADORES && ' (máximo alcanzado)'}
+                    </button>
+                  )}
+
+                  {!editando && (!form.cuidadores || form.cuidadores.filter(c => c.trim()).length === 0) && (
+                    <div style={{ fontSize: 12, color: 'var(--c-text-muted)', padding: '2px 0' }}>
+                      Sin cuidadores asignados
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {CAMPOS.map(campo => {
                 const val = String(form[campo.key] ?? '')
                 const overLimit = campo.maxLength && val.length > campo.maxLength * 0.9
@@ -526,7 +647,7 @@ export default function FichaPaciente() {
                 {!esNuevo && (
                   <button
                     className="btn btn-secondary"
-                    onClick={() => { setEditando(false); setForm({ ...paciente, telefono: stripPrefix(paciente.telefono) }); setFieldErrors({ nombre: '', dni: '', telefono: '', edad: '', email: '' }); setError(''); setExito('') }}
+                    onClick={() => { setEditando(false); setForm({ ...paciente, telefono: stripPrefix(paciente.telefono), cuidadores: paciente.cuidadores || [] }); setFieldErrors({ nombre: '', dni: '', telefono: '', edad: '', email: '' }); setCuidadoresErrors([]); setError(''); setExito('') }}
                   >
                     Cancelar
                   </button>

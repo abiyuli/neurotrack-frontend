@@ -17,7 +17,7 @@ const CAMPOS = [
 const stripPrefix = (tel) => (tel || '').replace(/^\+51\s?/, '')
 
 const VACIO = {
-  nombre:'', edad:'', dni:'', telefono:'',
+  nombre:'', edad:'', dni:'', telefono:'', email:'',
   medicacion:'', dosis:'', diagnostico:'',
   tiempo_diagnostico:'', estado:'Activo', comorbilidades:''
 }
@@ -42,7 +42,7 @@ export default function FichaPaciente() {
   const [loading,   setLoading]   = useState(false)
   const [error,     setError]     = useState('')
   const [exito,     setExito]     = useState('')
-  const [fieldErrors, setFieldErrors] = useState({ nombre: '', dni: '', telefono: '', edad: '' })
+  const [fieldErrors, setFieldErrors] = useState({ nombre: '', dni: '', telefono: '', edad: '', email: '' })
 
   function toTitleCase(val) {
     return val.trim().replace(/\s+/g, ' ')
@@ -76,7 +76,14 @@ export default function FichaPaciente() {
     if (n < 0 || n > 120) return 'Ingresa una edad válida entre 0 y 120 años.'
     return ''
   }
-  function blurEdad() { setFieldErrors(p => ({ ...p, edad: validateEdad(form.edad) })) }
+  function validateEmail(val, esNuevo) {
+    if (!val.trim()) return esNuevo ? 'El correo del paciente es obligatorio para vincularlo a la plataforma.' : ''
+    if (val.trim().length > 150) return 'El correo no puede superar 150 caracteres.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val.trim())) return 'Ingresa un correo válido (ej. usuario@correo.com).'
+    return ''
+  }
+  function blurEdad()  { setFieldErrors(p => ({ ...p, edad:  validateEdad(form.edad) })) }
+  function blurEmail() { setFieldErrors(p => ({ ...p, email: validateEmail(form.email, esNuevo) })) }
   function blurNombre() {
     const formatted = toTitleCase(form.nombre)
     setForm(p => ({ ...p, nombre: formatted }))
@@ -104,8 +111,9 @@ export default function FichaPaciente() {
     const errDni      = validateDni(form.dni)
     const errTelefono = validateTelefono(form.telefono)
     const errEdad     = validateEdad(form.edad)
-    setFieldErrors({ nombre: errNombre, dni: errDni, telefono: errTelefono, edad: errEdad })
-    if (errNombre || errDni || errTelefono || errEdad) return
+    const errEmail    = validateEmail(form.email, esNuevo)
+    setFieldErrors({ nombre: errNombre, dni: errDni, telefono: errTelefono, edad: errEdad, email: errEmail })
+    if (errNombre || errDni || errTelefono || errEdad || errEmail) return
     setLoading(true)
     try {
       const payload = { ...form, telefono: '+51' + form.telefono.replace(/\s+/g, '') }
@@ -191,6 +199,15 @@ export default function FichaPaciente() {
         .char-counter.near{color:var(--c-warn-text);}
         .char-counter.over{color:var(--c-danger-text);font-weight:600;}
         .form-group-wrap{display:flex;flex-direction:column;gap:0;}
+        .link-callout{grid-column:1/-1;display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:#EBF3FD;border:1px solid #93C3F0;border-radius:8px;font-size:12px;color:#0C3C6E;line-height:1.5;}
+        .link-callout-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+        .link-callout strong{font-weight:600;}
+        .link-status{display:flex;align-items:center;gap:6px;margin-top:10px;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:600;}
+        .link-status.linked{background:#EAF6F1;color:#054E38;}
+        .link-status.unlinked{background:#F3F4F6;color:#6B7280;}
+        .link-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+        .link-dot.on{background:#2A9E6A;}
+        .link-dot.off{background:#9CA3AF;}
         @media(max-width:600px){
           .ficha-topbar{padding:11px 16px;}
           .breadcrumb{padding:9px 16px;}
@@ -255,6 +272,17 @@ export default function FichaPaciente() {
                   <span className={form.estado === 'Activo' ? 'estado-activo' : 'estado-inactivo'}>
                     {form.estado}
                   </span>
+                </div>
+                <div className="ficha-div"></div>
+                <div className="ficha-row">
+                  <span className="ficha-label">Correo</span>
+                  <span className="ficha-val" style={{ fontSize: 11, maxWidth: 130, wordBreak: 'break-all', textAlign: 'right' }}>
+                    {form.email || '—'}
+                  </span>
+                </div>
+                <div className={`link-status${form.email ? ' linked' : ' unlinked'}`}>
+                  <span className={`link-dot${form.email ? ' on' : ' off'}`} />
+                  {form.email ? 'Cuenta vinculada' : 'Sin cuenta vinculada'}
                 </div>
                 {!esNuevo && !editando && (
   <>
@@ -385,6 +413,43 @@ export default function FichaPaciente() {
                 )}
               </div>
 
+              {/* Email de vinculación — ancho completo */}
+              <div className="form-group full">
+                {editando && (
+                  <div className="link-callout">
+                    <span className="link-callout-icon">🔗</span>
+                    <div>
+                      <strong>Correo de acceso a la plataforma</strong><br />
+                      Ingresa el correo con el que el paciente se registrará (o ya se registró) en NeuroTrack.
+                      Este correo vincula su cuenta de usuario con este expediente clínico.
+                      {esNuevo && <span style={{ color: '#1D5FA8' }}> Obligatorio para crear el paciente.</span>}
+                    </div>
+                  </div>
+                )}
+                <label className="form-label" style={{ marginTop: editando ? 10 : 0 }}>
+                  Correo del paciente {esNuevo && <span style={{ color: 'var(--c-danger)', fontWeight: 700 }}>*</span>}
+                </label>
+                <input
+                  className={`form-input${fieldErrors.email ? ' invalid' : ''}`}
+                  type="email" placeholder="paciente@correo.com" maxLength={150}
+                  value={form.email}
+                  disabled={!editando}
+                  onChange={setField('email')}
+                  onBlur={blurEmail}
+                />
+                {fieldErrors.email ? (
+                  <div className="field-bubble">
+                    <span className="field-bubble-dot" />
+                    {fieldErrors.email}
+                  </div>
+                ) : editando && (
+                  <div className="field-hint">
+                    <span className="hint-icon">i</span>
+                    Debe coincidir exactamente con el correo que usa el paciente para iniciar sesión
+                  </div>
+                )}
+              </div>
+
               {CAMPOS.map(campo => {
                 const val = String(form[campo.key] ?? '')
                 const overLimit = campo.maxLength && val.length > campo.maxLength * 0.9
@@ -461,7 +526,7 @@ export default function FichaPaciente() {
                 {!esNuevo && (
                   <button
                     className="btn btn-secondary"
-                    onClick={() => { setEditando(false); setForm({ ...paciente, telefono: stripPrefix(paciente.telefono) }); setFieldErrors({ nombre: '', dni: '', telefono: '', edad: '' }); setError(''); setExito('') }}
+                    onClick={() => { setEditando(false); setForm({ ...paciente, telefono: stripPrefix(paciente.telefono) }); setFieldErrors({ nombre: '', dni: '', telefono: '', edad: '', email: '' }); setError(''); setExito('') }}
                   >
                     Cancelar
                   </button>

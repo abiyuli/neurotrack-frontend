@@ -180,6 +180,8 @@ export default function Registro() {
         .phone-input{flex:1;padding:10px 14px 10px 4px;font-size:13px;border:none;background:transparent;color:#0B2545;outline:none;font-family:inherit;}
         .field-hint{display:flex;align-items:center;gap:5px;margin-top:4px;font-size:10px;color:#7A8FA8;line-height:1.4;}
         .hint-icon{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;border:1px solid #93C3F0;color:#1D5FA8;font-size:8px;font-weight:700;flex-shrink:0;}
+        .paciente-notice{padding:10px 12px;background:#FFF7E6;border-left:3px solid #E8A020;border-radius:0 8px 8px 0;font-size:11px;color:#7A5010;line-height:1.6;margin-top:10px;}
+        .paciente-notice strong{font-weight:700;}
         @media(max-width:600px){
           .reg-center{padding:20px 14px;}
           .brand-name{font-size:20px;}
@@ -374,7 +376,7 @@ export default function Registro() {
               )}
             </div>
 
-            {roleData?.type === 'instant' && (
+            {roleData?.type === 'instant' && selectedRole !== 'paciente' && (
               <div className="notice notice-instant">
                 Tu cuenta se activará de inmediato al registrarte.
               </div>
@@ -382,6 +384,11 @@ export default function Registro() {
             {roleData?.type === 'pending' && (
               <div className="notice notice-pending">
                 Tu solicitud quedará <strong>pendiente de aprobación</strong>. Un administrador deberá validar tu cuenta antes de que puedas iniciar sesión.
+              </div>
+            )}
+            {selectedRole === 'paciente' && (
+              <div className="paciente-notice">
+                <strong>Requisito previo para pacientes:</strong> tu médico debe haber creado tu ficha clínica en NeuroTrack usando exactamente este correo. Si aún no tiene ficha, tu cuenta se creará pero no estará vinculada a tus datos de monitoreo.
               </div>
             )}
           </div>

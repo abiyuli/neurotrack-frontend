@@ -67,6 +67,13 @@ export default function Login() {
         .input-field.invalid{border-color:#c00 !important;background:#fff8f8;}
         .field-bubble{display:flex;align-items:center;gap:6px;margin-top:8px;padding:5px 10px;background:#fff0f0;border:1px solid #fcc;border-radius:6px;font-size:14px;color:#c00;}
         .field-bubble-dot{width:6px;height:6px;border-radius:50%;background:#c00;flex-shrink:0;}
+        .register-callout{margin-top:18px;padding:14px 16px;background:#F0F6FF;border:1px solid #B8D4F5;border-radius:10px;font-size:13px;color:#0C3C6E;line-height:1.6;}
+        .register-callout-title{font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:7px;font-size:13px;}
+        .register-callout-icon{width:18px;height:18px;border-radius:50%;background:#1D5FA8;color:#fff;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .register-callout ul{padding-left:16px;margin:4px 0 0;}
+        .register-callout li{margin-bottom:4px;}
+        .register-callout li:last-child{margin-bottom:0;}
+        .register-callout strong{font-weight:700;color:#0B2545;}
         @media(max-width:600px){
           .page-center{padding:28px 16px;}
           .brand{margin-bottom:28px;}
@@ -160,6 +167,18 @@ export default function Login() {
 
         <div className="divider"></div>
         <div className="link-row">¿No tienes cuenta? <a href="/registro">Regístrate</a></div>
+
+        <div className="register-callout" role="note">
+          <div className="register-callout-title">
+            <span className="register-callout-icon">i</span>
+            ¿Quién puede registrarse?
+          </div>
+          <ul>
+            <li><strong>Médicos e investigadores</strong> — registro libre, requiere aprobación del administrador.</li>
+            <li><strong>Cuidadores</strong> — registro libre, acceso inmediato tras aprobación.</li>
+            <li><strong>Pacientes</strong> — solo puedes registrarte si tu médico ya creó tu ficha clínica con el correo que vas a usar. Sin ficha previa, la cuenta no se vinculará a tus datos.</li>
+          </ul>
+        </div>
         </form>
       </div>
       </div>

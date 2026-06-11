@@ -9,6 +9,7 @@ export default function AdminUsuarios() {
   const [loading,     setLoading]     = useState(true)
   const [error,       setError]       = useState('')
   const [actionError, setActionError] = useState('')
+  const [actionMsg,   setActionMsg]   = useState('')
 
   function load() {
     setLoading(true)
@@ -22,8 +23,12 @@ export default function AdminUsuarios() {
 
   async function updateEstado(email, estado) {
     setActionError('')
+    setActionMsg('')
     try {
       await api.put(`/admin/usuarios/${encodeURIComponent(email)}/estado`, { estado })
+      const labels = { Activo: 'activado', Inactivo: 'desactivado', Rechazado: 'rechazado' }
+      setActionMsg(`Usuario ${labels[estado] || 'actualizado'} correctamente.`)
+      setTimeout(() => setActionMsg(''), 4000)
       load()
     } catch {
       setActionError('Error al actualizar el estado')
@@ -70,6 +75,7 @@ export default function AdminUsuarios() {
           {loading && <div className="state-loading"><div className="spinner" /><span>Cargando usuarios...</span></div>}
           {error   && <div className="state-error">{error}</div>}
           {actionError && <div className="action-error">{actionError}</div>}
+          {actionMsg   && <div className="action-success">{actionMsg}</div>}
 
           {!loading && !error && (
             <div className="table-outer">

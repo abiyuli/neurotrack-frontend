@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import ErrorBoundary from './components/ErrorBoundary'
+import ErrorPage from './pages/ErrorPage'
 import Login from './pages/Login'
 import Registro from './pages/Registro'
 import MedicoHome from './pages/medico/MedicoHome'
@@ -27,6 +29,7 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <ErrorBoundary>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
@@ -69,8 +72,10 @@ export default function App() {
             <Route path="alertas"  element={<PacienteAlertas />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="/error"  element={<ErrorPage />} />
+          <Route path="*"       element={<ErrorPage code="404" />} />
         </Routes>
+        </ErrorBoundary>
       </BrowserRouter>
     </AuthProvider>
   )

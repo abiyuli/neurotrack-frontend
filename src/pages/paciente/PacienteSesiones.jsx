@@ -17,10 +17,12 @@ function modClass(m) {
 export default function PacienteSesiones() {
   const [sesiones, setSesiones] = useState([])
   const [loading,  setLoading]  = useState(true)
+  const [error,    setError]    = useState('')
 
   useEffect(() => {
     api.get('/paciente/sesiones')
       .then(({ data }) => setSesiones(data.sesiones || []))
+      .catch(() => setError('No se pudo cargar el historial de sesiones.'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -34,14 +36,20 @@ export default function PacienteSesiones() {
         </div>
       )}
 
-      {!loading && sesiones.length === 0 && (
+      {!loading && error && (
+        <div style={{ padding: 20, color: '#A32D2D', fontSize: 13, background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 8 }}>
+          {error}
+        </div>
+      )}
+
+      {!loading && !error && sesiones.length === 0 && (
         <div className="pac-empty">
           <div className="pac-empty-icon">📋</div>
           Aún no tienes sesiones registradas
         </div>
       )}
 
-      {!loading && sesiones.length > 0 && (
+      {!loading && !error && sesiones.length > 0 && (
         <div className="pac-table-outer">
           <table className="pac-table">
             <thead>

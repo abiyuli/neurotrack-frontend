@@ -12,4 +12,27 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+api.interceptors.response.use(
+  response => response,
+  error => {
+    const status = error.response?.status
+    const url    = error.config?.url || ''
+    const isAuth = url.includes('/auth/login') || url.includes('/register')
+
+    if (!isAuth) {
+      if (status === 401) {
+        sessionStorage.clear()
+        window.location.href = '/login?motivo=sesion_expirada'
+        return new Promise(() => {}) // prevent downstream catch blocks from running
+      }
+      if (status === 403) {
+        window.location.href = '/error?code=403'
+        return new Promise(() => {})
+      }
+    }
+
+    return Promise.reject(error)
+  }
+)
+
 export default api

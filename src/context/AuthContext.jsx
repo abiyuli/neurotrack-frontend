@@ -11,8 +11,8 @@ export function AuthProvider({ children }) {
     () => JSON.parse(sessionStorage.getItem('user') || 'null')
   )
 
-  async function login(email, password) {
-    const { data } = await api.post('/auth/login', { email, password })
+  async function login(email, password, cfToken) {
+    const { data } = await api.post('/auth/login', { email, password, cf_turnstile_response: cfToken })
     sessionStorage.setItem('idToken', data.idToken)
 
     const profileRes = await api.get('/auth/me', {

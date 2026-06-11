@@ -11,6 +11,8 @@ export default function InvestigadorSesiones() {
   const [metrics,       setMetrics]       = useState(null)
   const [metricsLoading, setMetricsLoading] = useState(false)
   const [loading,       setLoading]       = useState(true)
+  const [error,         setError]         = useState('')
+  const [metricsError,  setMetricsError]  = useState('')
   const [search,        setSearch]        = useState('')
   const [filterMod,     setFilterMod]     = useState('')
   const [filterAlert,   setFilterAlert]   = useState('')
@@ -27,11 +29,13 @@ export default function InvestigadorSesiones() {
     if (filterMod)   params.modulo  = filterMod
     if (filterAlert) params.alertas = filterAlert
     setLoading(true)
+    setError('')
     api.get('/investigador/sesiones', { params })
       .then(({ data }) => {
         setSessions(data.sessions || [])
         setSummary(data.summary  || { total: 0, conAlerta: 0, sinAlerta: 0, byModulo: {} })
       })
+      .catch(() => setError('No se pudo cargar la lista de sesiones.'))
       .finally(() => setLoading(false))
   }, [filterMod, filterAlert])
 
@@ -39,9 +43,11 @@ export default function InvestigadorSesiones() {
     setActiveSession(ses)
     setView('metricas')
     setMetrics(null)
+    setMetricsError('')
     setMetricsLoading(true)
     api.get(`/investigador/sesiones/${ses.sesId}/metricas`)
       .then(({ data }) => setMetrics(data))
+      .catch(() => setMetricsError('No se pudieron cargar las métricas de esta sesión.'))
       .finally(() => setMetricsLoading(false))
   }
 
@@ -71,7 +77,11 @@ export default function InvestigadorSesiones() {
           <div className="state-loading"><div className="spinner" /><span>Cargando métricas...</span></div>
         )}
 
-        {!metricsLoading && m && (
+        {!metricsLoading && metricsError && (
+          <div className="state-error">{metricsError}</div>
+        )}
+
+        {!metricsLoading && !metricsError && m && (
           <div className="content-wrap" style={{ overflowY: 'auto' }}>
             <div className="content-main" style={{ overflow: 'visible', gap: 10 }}>
               <div className="stat-grid">
@@ -178,8 +188,9 @@ export default function InvestigadorSesiones() {
           </div>
 
           {loading && <div className="state-loading"><div className="spinner" /><span>Cargando sesiones...</span></div>}
+          {!loading && error && <div className="state-error">{error}</div>}
 
-          {!loading && (
+          {!loading && !error && (
             <div className="table-outer">
               <table className="admin-table" style={{ minWidth: 580 }}>
                 <thead>

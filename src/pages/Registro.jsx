@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Turnstile } from '@marsidev/react-turnstile'
 import api from '../api/client'
 
 const ROLES = [
@@ -18,6 +19,7 @@ export default function Registro() {
   const [error,       setError]       = useState('')
   const [fieldErrors, setFieldErrors] = useState({ nombre: '', dni: '', telefono: '', password: '', email: '', cmp: '', codigoInstitucional: '' })
   const [loading,     setLoading]     = useState(false)
+  const [cfToken,     setCfToken]     = useState('')
 
   const roleData = ROLES.find(r => r.key === selectedRole)
 
@@ -112,11 +114,12 @@ export default function Registro() {
     if (errNombre || errDni || errEmail || errTelefono || errPassword || errCmp || errCodigo) return
 
     if (!selectedRole) { setError('Selecciona un rol para continuar.'); return }
+    if (!cfToken)      { setError('Completa la verificación de seguridad.'); return }
 
     setError('')
     setLoading(true)
     try {
-      const payload = { ...form, telefono: '+51' + form.telefono.replace(/\s+/g, ''), role: selectedRole }
+      const payload = { ...form, telefono: '+51' + form.telefono.replace(/\s+/g, ''), role: selectedRole, cf_turnstile_response: cfToken }
       const { data } = await api.post('/register', payload)
       const msg = data.estado === 'Pendiente'
         ? 'Solicitud enviada. Un administrador debe aprobar tu cuenta antes de que puedas iniciar sesión.'
@@ -393,7 +396,17 @@ export default function Registro() {
             )}
           </div>
 
-          <button className="btn btn-primary" onClick={handleSubmit} disabled={loading}>
+          <div style={{ margin: '14px 0 6px' }}>
+            <Turnstile
+              siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+              onSuccess={token => setCfToken(token)}
+              onError={() => setCfToken('')}
+              onExpire={() => setCfToken('')}
+              options={{ theme: 'light', language: 'es' }}
+            />
+          </div>
+
+          <button className="btn btn-primary" onClick={handleSubmit} disabled={loading || !cfToken}>
             {loading ? 'Creando cuenta...' : 'Crear cuenta'}
           </button>
           <div className="link-row">

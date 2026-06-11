@@ -201,6 +201,7 @@ td.state-empty{padding:30px;text-align:center;font-size:13px;color:var(--c-text-
 .inline-confirm{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;}
 .inline-confirm-label{font-size:11px;color:var(--c-danger-text);white-space:nowrap;}
 .action-error{font-size:11px;color:var(--c-danger-text);padding:6px 0;}
+.action-success{font-size:11px;color:#065F46;background:#ECFDF5;border:1px solid #6EE7B7;border-radius:6px;padding:6px 10px;margin-top:6px;}
 
 /* ── Responsive mobile ── */
 @media(max-width:600px){

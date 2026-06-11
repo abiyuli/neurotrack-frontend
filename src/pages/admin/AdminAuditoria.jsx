@@ -8,10 +8,12 @@ export default function AdminAuditoria() {
   const [filterOp,   setFilterOp]   = useState('')
   const [filterRole, setFilterRole] = useState('')
   const [loading,    setLoading]    = useState(true)
+  const [error,      setError]      = useState('')
 
   useEffect(() => {
     api.get('/admin/auditoria')
       .then(({ data }) => { setLogs(data.logs || []); setSummary(data.summary || {}) })
+      .catch(() => setError('No se pudo cargar el registro de auditoría.'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -55,8 +57,9 @@ export default function AdminAuditoria() {
           </div>
 
           {loading && <div className="state-loading"><div className="spinner" /><span>Cargando auditoría...</span></div>}
+          {!loading && error && <div className="state-error">{error}</div>}
 
-          {!loading && (
+          {!loading && !error && (
             <div className="table-outer">
               <table className="admin-table" style={{ minWidth: 700 }}>
                 <thead>

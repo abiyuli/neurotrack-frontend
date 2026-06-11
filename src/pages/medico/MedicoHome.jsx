@@ -136,7 +136,7 @@ export default function MedicoHome() {
             <div className="shell-topbar-title">Mis pacientes</div>
             <div className="shell-topbar-right">
               <span className="role-chip role-chip-medico">Médico</span>
-              <AvatarMenu initials={initials(user?.email)} className="avatar" />
+              <AvatarMenu initials={initials(user?.nombre || user?.email)} className="avatar" />
             </div>
           </div>
 
@@ -154,8 +154,8 @@ export default function MedicoHome() {
                   </div>
                 </div>
                 <div className="stat-card">
-                  <div className="stat-label">Cargados desde AWS</div>
-                  <div className="stat-val">{loading ? '...' : patients.length}</div>
+                  <div className="stat-label">Sin alertas</div>
+                  <div className="stat-val">{loading ? '...' : patients.filter(p => !p.alert_count).length}</div>
                 </div>
               </div>
 

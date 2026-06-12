@@ -154,15 +154,20 @@ export default function SesionDetalle() {
 
     const clasificationLabel = (cls) => {
       if (!cls || cls === 'normal') return '✅ Normal';
-      if (cls === 'rest') return '🔴 Temblor de Reposo';
+      // Clinical type taxonomy (firmware ML output)
+      if (cls === 'rest')     return '🔴 Temblor de Reposo';
       if (cls === 'essential') return '🟠 Temblor Esencial';
+      // Severity taxonomy (DynamoDB severity field)
+      if (cls === 'leve')     return '🟡 Temblor Leve';
+      if (cls === 'moderado') return '🟠 Temblor Moderado';
+      if (cls === 'severo')   return '🔴 Temblor Severo';
       return cls;
     };
 
     // RF-TREM-03: aceleración triaxial
     const accelData = data.map((event) => ({
       timestamp: formatTime(event.timestamp),
-      accel_x: parseFloat(event.accel?.x ?? event.accel_x ?? event.acceleration) || 0,
+      accel_x: parseFloat(event.accel?.x ?? event.accel_x) || 0,
       accel_y: parseFloat(event.accel?.y ?? event.accel_y) || 0,
       accel_z: parseFloat(event.accel?.z ?? event.accel_z) || 0,
     }));
@@ -204,7 +209,7 @@ export default function SesionDetalle() {
           </div>
           <div className="stat-card">
             <span className="stat-label">Amplitud promedio</span>
-            <span className="stat-value">{avgAmp}</span>
+            <span className="stat-value">{avgAmp} m/s²</span>
           </div>
           <div className="stat-card">
             <span className="stat-label">Clasificación predominante</span>
@@ -222,7 +227,7 @@ export default function SesionDetalle() {
                 <th>Acel. Y (m/s²)</th>
                 <th>Acel. Z (m/s²)</th>
                 <th>Frecuencia (Hz)</th>
-                <th>Amplitud</th>
+                <th>Amplitud (m/s²)</th>
                 <th>Clasificación</th>
               </tr>
             </thead>
@@ -232,7 +237,7 @@ export default function SesionDetalle() {
                 return (
                   <tr key={idx}>
                     <td>{formatTime(event.timestamp)}</td>
-                    <td>{(parseFloat(event.accel?.x ?? event.accel_x ?? event.acceleration) || 0).toFixed(3)}</td>
+                    <td>{(parseFloat(event.accel?.x ?? event.accel_x) || 0).toFixed(3)}</td>
                     <td>{(parseFloat(event.accel?.y ?? event.accel_y) || 0).toFixed(3)}</td>
                     <td>{(parseFloat(event.accel?.z ?? event.accel_z) || 0).toFixed(3)}</td>
                     <td>{(parseFloat(event.frequency ?? event.tremor_frequency) || 0).toFixed(2)}</td>

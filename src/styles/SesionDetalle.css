@@ -352,6 +352,21 @@
   color: var(--c-warn-text);
 }
 
+.prediction-badge.leve {
+  background: #fff9c4;
+  color: #7a6200;
+}
+
+.prediction-badge.moderado {
+  background: var(--c-warn-bg);
+  color: var(--c-warn-text);
+}
+
+.prediction-badge.severo {
+  background: var(--c-danger-bg);
+  color: var(--c-danger-text);
+}
+
 
 /* ── Cabecera top row ── */
 .session-header-top {

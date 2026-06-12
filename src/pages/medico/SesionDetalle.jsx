@@ -17,6 +17,7 @@ import {
 import client from '../../api/client';
 import '../../styles/SesionDetalle.css';
 import { useEscLogout } from '../../hooks/useEscLogout';
+import { tremorSeverityLabel, isFogFreeze, fogPredictionLabel, normBradyType, medState } from '../../constants/dataSchema';
 
 function OnOffChart({ chartData, hasData, title }) {
   if (!hasData) return null;
@@ -152,18 +153,6 @@ export default function SesionDetalle() {
         second: '2-digit',
       });
 
-    const clasificationLabel = (cls) => {
-      if (!cls || cls === 'normal') return '✅ Normal';
-      // Clinical type taxonomy (firmware ML output)
-      if (cls === 'rest')     return '🔴 Temblor de Reposo';
-      if (cls === 'essential') return '🟠 Temblor Esencial';
-      // Severity taxonomy (DynamoDB severity field)
-      if (cls === 'leve')     return '🟡 Temblor Leve';
-      if (cls === 'moderado') return '🟠 Temblor Moderado';
-      if (cls === 'severo')   return '🔴 Temblor Severo';
-      return cls;
-    };
-
     // RF-TREM-03: aceleración triaxial
     const accelData = data.map((event) => ({
       timestamp: formatTime(event.timestamp),
@@ -213,7 +202,7 @@ export default function SesionDetalle() {
           </div>
           <div className="stat-card">
             <span className="stat-label">Clasificación predominante</span>
-            <span className="stat-value">{clasificationLabel(dominantClass)}</span>
+            <span className="stat-value">{tremorSeverityLabel(dominantClass)}</span>
           </div>
         </div>
 
@@ -244,7 +233,7 @@ export default function SesionDetalle() {
                     <td>{(parseFloat(event.amplitude ?? event.tremor_amplitude) || 0).toFixed(3)}</td>
                     <td>
                       <span className={`prediction-badge ${cls}`}>
-                        {clasificationLabel(cls)}
+                        {tremorSeverityLabel(cls)}
                       </span>
                     </td>
                   </tr>
@@ -364,9 +353,6 @@ export default function SesionDetalle() {
         second: '2-digit',
       });
 
-    const isFreezeLabel = (p) =>
-      p === 'freeze' || p === 'Freezing' || p === 'freezing';
-
     const accelData = data.map((event) => ({
       timestamp: formatTimeFOG(event.timestamp),
       accel_x: parseFloat(event.accel?.x) || 0,
@@ -382,7 +368,7 @@ export default function SesionDetalle() {
 
     // KPIs
     const totalEvents     = data.length;
-    const freezeEvents    = data.filter(e => isFreezeLabel(e.prediction)).length;
+    const freezeEvents    = data.filter(e => isFogFreeze(e.prediction)).length;
     const totalDurationS  = (data.reduce((s, e) => s + (e.duration_ms || 0), 0) / 1000).toFixed(1);
     const avgProb         = (data.reduce((s, e) => s + (parseFloat(e.fog_probability) || 0), 0) / totalEvents).toFixed(2);
     const maxDurationS    = (Math.max(...data.map(e => e.duration_ms || 0)) / 1000).toFixed(1);
@@ -442,7 +428,7 @@ export default function SesionDetalle() {
                   <td>{((parseFloat(event.fog_probability) || 0) * 100).toFixed(0)} %</td>
                   <td>
                     <span className={`prediction-badge ${event.prediction}`}>
-                      {isFreezeLabel(event.prediction) ? '🚫 Congelamiento' : '✅ Normal'}
+                      {fogPredictionLabel(event.prediction)}
                     </span>
                   </td>
                 </tr>
@@ -564,11 +550,10 @@ export default function SesionDetalle() {
 
 
     // Separar por tipo de ejercicio
-    const normalize = (t = '') => t.toLowerCase().replace(/[^a-z]/g, '');
-    const ftData = data.filter((e) => ['fingertapping', 'ft', 'fingertap'].includes(normalize(e.test_type)));
-    const hoData = data.filter((e) => ['handopening', 'ho', 'aperturacierre', 'opening'].includes(normalize(e.test_type)));
-    const psData = data.filter((e) => ['pronationsupination', 'ps', 'pronacion', 'supination'].includes(normalize(e.test_type)));
-    const unknownCount = data.filter((e) => normalize(e.test_type) === 'unknown' || !e.test_type).length;
+    const ftData = data.filter((e) => ['fingertapping', 'ft', 'fingertap'].includes(normBradyType(e.test_type)));
+    const hoData = data.filter((e) => ['handopening', 'ho', 'aperturacierre', 'opening'].includes(normBradyType(e.test_type)));
+    const psData = data.filter((e) => ['pronationsupination', 'ps', 'pronacion', 'supination'].includes(normBradyType(e.test_type)));
+    const unknownCount = data.filter((e) => normBradyType(e.test_type) === 'unknown' || !e.test_type).length;
 
     // Never fall back to all data — each exercise shows only its own events
     const ftFinal = ftData;
@@ -608,9 +593,6 @@ export default function SesionDetalle() {
     }));
 
     // ── Helpers ON/OFF ──
-    const medState = (e) =>
-      (e.medication ?? e.medication_condition ?? '').toUpperCase() === 'ON' ? 'ON' : 'OFF';
-
     const buildOnOffChart = (dataset, fields) => {
       const on  = dataset.filter((e) => medState(e) === 'ON');
       const off = dataset.filter((e) => medState(e) === 'OFF');
@@ -786,12 +768,12 @@ export default function SesionDetalle() {
       const n = parseInt(v, 10)
       return (v == null || isNaN(n)) ? '—' : String(n)
     }
-    const isFT = (e) => ['fingertapping','ft','fingertap'].includes(normalize(e.test_type))
-    const isHO = (e) => ['handopening','ho','aperturacierre','opening'].includes(normalize(e.test_type))
-    const isPS = (e) => ['pronationsupination','ps','pronacion','supination'].includes(normalize(e.test_type))
+    const isFT = (e) => ['fingertapping','ft','fingertap'].includes(normBradyType(e.test_type))
+    const isHO = (e) => ['handopening','ho','aperturacierre','opening'].includes(normBradyType(e.test_type))
+    const isPS = (e) => ['pronationsupination','ps','pronacion','supination'].includes(normBradyType(e.test_type))
 
-    const onCount  = data.filter((e) => (e.medication ?? '').toUpperCase() === 'ON').length;
-    const offCount = data.filter((e) => (e.medication ?? '').toUpperCase() === 'OFF').length;
+    const onCount  = data.filter((e) => medState(e) === 'ON').length;
+    const offCount = data.filter((e) => medState(e) === 'OFF').length;
 
     return (
       <div className="chart-wrapper">

@@ -356,28 +356,36 @@ export default function SesionDetalle() {
       return <p className="no-data-tab">No hay datos de FOG disponibles.</p>;
     }
 
-    const accelData = data.map((event) => ({
-      timestamp: new Date(event.timestamp).toLocaleString('es-PE', {
+    const formatTimeFOG = (ts) =>
+      new Date(ts).toLocaleString('es-PE', {
         timeZone: 'America/Lima',
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
-      }),
-      accel_x: parseFloat(event.accel?.x || 0),
-      accel_y: parseFloat(event.accel?.y || 0),
-      accel_z: parseFloat(event.accel?.z || 0),
+      });
+
+    const isFreezeLabel = (p) =>
+      p === 'freeze' || p === 'Freezing' || p === 'freezing';
+
+    const accelData = data.map((event) => ({
+      timestamp: formatTimeFOG(event.timestamp),
+      accel_x: parseFloat(event.accel?.x) || 0,
+      accel_y: parseFloat(event.accel?.y) || 0,
+      accel_z: parseFloat(event.accel?.z) || 0,
     }));
 
     const fogData = data.map((event) => ({
-      timestamp: new Date(event.timestamp).toLocaleString('es-PE', {
-        timeZone: 'America/Lima',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      }),
+      timestamp: formatTimeFOG(event.timestamp),
       fog_probability: parseFloat(event.fog_probability) || 0,
       prediction: event.prediction || 'normal',
     }));
+
+    // KPIs
+    const totalEvents     = data.length;
+    const freezeEvents    = data.filter(e => isFreezeLabel(e.prediction)).length;
+    const totalDurationS  = (data.reduce((s, e) => s + (e.duration_ms || 0), 0) / 1000).toFixed(1);
+    const avgProb         = (data.reduce((s, e) => s + (parseFloat(e.fog_probability) || 0), 0) / totalEvents).toFixed(2);
+    const maxDurationS    = (Math.max(...data.map(e => e.duration_ms || 0)) / 1000).toFixed(1);
 
     const graficasFOG = [
       { key: 'accel', label: '📊 Aceleración Triaxial' },
@@ -386,6 +394,30 @@ export default function SesionDetalle() {
 
     return (
       <div className="chart-wrapper">
+
+        {/* KPIs resumen */}
+        <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
+          <div className="stat-card">
+            <span className="stat-label">Eventos detectados</span>
+            <span className="stat-value">{totalEvents}</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">Episodios freeze</span>
+            <span className="stat-value">{freezeEvents}</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">Duración total</span>
+            <span className="stat-value">{totalDurationS} s</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">Episodio más largo</span>
+            <span className="stat-value">{maxDurationS} s</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">Prob. promedio</span>
+            <span className="stat-value">{(avgProb * 100).toFixed(0)} %</span>
+          </div>
+        </div>
 
         <div className="data-table data-table--scroll" style={{ marginBottom: '28px' }}>
           <h3>📋 Detalle de Eventos FOG</h3>
@@ -403,19 +435,14 @@ export default function SesionDetalle() {
             <tbody>
               {data.slice(0, 15).map((event, idx) => (
                 <tr key={idx}>
-                  <td>{new Date(event.timestamp).toLocaleString('es-PE', {
-                    timeZone: 'America/Lima',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                  })}</td>
+                  <td>{formatTimeFOG(event.timestamp)}</td>
                   <td>{event.event_start > 0 ? new Date(event.event_start).toLocaleTimeString('es-PE') : '—'}</td>
-                  <td>{event.event_end > 0 ? new Date(event.event_end).toLocaleTimeString('es-PE') : '—'}</td>
+                  <td>{event.event_end   > 0 ? new Date(event.event_end).toLocaleTimeString('es-PE')   : '—'}</td>
                   <td>{event.duration_ms ? (event.duration_ms / 1000).toFixed(1) : '0'}</td>
-                  <td>{(parseFloat(event.fog_probability) || 0).toFixed(2)}</td>
+                  <td>{((parseFloat(event.fog_probability) || 0) * 100).toFixed(0)} %</td>
                   <td>
                     <span className={`prediction-badge ${event.prediction}`}>
-                      {event.prediction === 'freeze' || event.prediction === 'Freezing' ? '🚫 Congelamiento' : '✅ Normal'}
+                      {isFreezeLabel(event.prediction) ? '🚫 Congelamiento' : '✅ Normal'}
                     </span>
                   </td>
                 </tr>
@@ -439,9 +466,9 @@ export default function SesionDetalle() {
         <div ref={fogPanelRef} />
         {(fogSubTab === 'accel' || isPrinting) && (
           <div className="brady-exercise-panel">
-            <h3>📊 Datos Crudos de Aceleración (Triaxial)</h3>
+            <h3>📊 Aceleración Triaxial durante Evento FOG</h3>
             <p style={{ fontSize: '12px', color: '#666', marginBottom: '10px' }}>
-              Aceleración en m/s² capturada por sensores IMU en tobillo, muslo y cadera
+              Aceleración en m/s² capturada por el sensor IMU del módulo FOG (Arduino) al momento de cada evento
             </p>
             <ResponsiveContainer width="100%" height={350}>
               <LineChart data={accelData}>
@@ -460,14 +487,22 @@ export default function SesionDetalle() {
 
         {(fogSubTab === 'prob' || isPrinting) && (
           <div className="brady-exercise-panel">
-            <h3>🚫 Probabilidad de FOG Detectado</h3>
+            <h3>🚫 Probabilidad de FOG en el Tiempo</h3>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '10px', fontSize: '11px' }}>
+              <span style={{ background: '#d4edda', color: '#155724', padding: '2px 8px', borderRadius: '4px' }}>Sin FOG &lt; 50 %</span>
+              <span style={{ background: '#f8d7da', color: '#721c24', padding: '2px 8px', borderRadius: '4px' }}>Freeze ≥ 50 %</span>
+            </div>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={fogData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="timestamp" />
-                <YAxis domain={[0, 1]} label={{ value: 'Probabilidad', angle: -90, position: 'insideLeft' }} />
-                <Tooltip formatter={(value) => (value != null ? Number(value).toFixed(2) : '—')} />
+                <YAxis domain={[0, 1]} tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} label={{ value: 'Probabilidad', angle: -90, position: 'insideLeft' }} />
+                <Tooltip formatter={(value) => (value != null ? `${(Number(value) * 100).toFixed(0)} %` : '—')} />
                 <Legend />
+                <ReferenceArea y1={0}   y2={0.5} fill="#d4edda" fillOpacity={0.20} />
+                <ReferenceArea y1={0.5} y2={1}   fill="#f8d7da" fillOpacity={0.20} />
+                <ReferenceLine y={0.5} stroke="#E74C3C" strokeDasharray="5 4"
+                  label={{ value: 'Umbral FOG (50%)', position: 'insideTopRight', fontSize: 10, fill: '#721c24' }} />
                 <Line
                   type="monotone"
                   dataKey="fog_probability"
@@ -475,6 +510,7 @@ export default function SesionDetalle() {
                   name="Probabilidad FOG"
                   isAnimationActive={false}
                   strokeWidth={2}
+                  dot={false}
                 />
               </LineChart>
             </ResponsiveContainer>

@@ -5,6 +5,7 @@ export default function AdminUsuarios() {
   const [users,       setUsers]       = useState([])
   const [summary,     setSummary]     = useState({ active: 0, pending: 0, inactive: 0, byRole: {} })
   const [search,      setSearch]      = useState('')
+  const [filterRole,  setFilterRole]  = useState('')
   const [showPending, setShowPending] = useState(false)
   const [loading,     setLoading]     = useState(true)
   const [error,       setError]       = useState('')
@@ -36,7 +37,8 @@ export default function AdminUsuarios() {
   }
 
   const filtered = users.filter(u => {
-    if (showPending) return u.status === 'pending'
+    if (showPending && u.status !== 'pending') return false
+    if (filterRole  && u.role !== filterRole)  return false
     if (!search) return true
     const q = search.toLowerCase()
     return u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.dni.includes(q) || u.roleLabel.toLowerCase().includes(q)
@@ -70,6 +72,18 @@ export default function AdminUsuarios() {
               <input className="search-input" type="text" placeholder="Buscar por nombre, DNI o correo..."
                 value={showPending ? '' : search} onChange={e => handleSearch(e.target.value)} />
             </div>
+            <select
+              className="filter-select"
+              value={filterRole}
+              onChange={e => { setFilterRole(e.target.value); setShowPending(false) }}
+            >
+              <option value="">Todos los roles</option>
+              <option value="medico">Médico</option>
+              <option value="investigador">Investigador</option>
+              <option value="cuidador">Cuidador</option>
+              <option value="paciente">Paciente</option>
+              <option value="admin">Administrador</option>
+            </select>
           </div>
 
           {loading && <div className="state-loading"><div className="spinner" /><span>Cargando usuarios...</span></div>}

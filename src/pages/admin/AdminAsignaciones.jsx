@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react'
 import api from '../../api/client'
 
-const MAX_PACIENTES_POR_CUIDADOR  = 8
-const MAX_CUIDADORES_POR_PACIENTE = 4
-
-// Normaliza el email del cuidador — el backend puede devolverlo como email o cuidador_email
+const MAX_PACIENTES_POR_CUIDADOR = 8
 const rowEmail = (a) => a.cuidador_email || a.email || ''
 
 export default function AdminAsignaciones() {
@@ -20,12 +17,10 @@ export default function AdminAsignaciones() {
   const [saveError,    setSaveError]    = useState('')
   const [saveMsg,      setSaveMsg]      = useState('')
   const [loadError,    setLoadError]    = useState('')
-
-  // Estado para gestión de pacientes por fila
-  const [managingRow,      setManagingRow]      = useState(null)  // email del cuidador en modo gestión
-  const [confirmRemove,    setConfirmRemove]    = useState(null)  // { email, pid } a confirmar
-  const [removeLoading,    setRemoveLoading]    = useState(false)
-  const [removeError,      setRemoveError]      = useState('')
+  const [removingPid,  setRemovingPid]  = useState(null)   // { email, pid }
+  const [removeLoading, setRemoveLoading] = useState(false)
+  const [removeError,  setRemoveError]  = useState('')
+  const [managingRow,  setManagingRow]  = useState(null)
 
   function load() {
     setLoading(true)
@@ -42,153 +37,165 @@ export default function AdminAsignaciones() {
 
   useEffect(() => { load() }, [])
 
-  // ── Derivar conteos ────────────────────────────────────────────────────
+  // ── Derivar conteos ────────────────────────────────────────────────────────
   const caregiverCurrentCount = assignments.reduce((acc, a) => {
     acc[rowEmail(a)] = (a.patients || []).length
     return acc
   }, {})
 
-  const patientCaregiverCount = {}
-  assignments.forEach(a => {
-    ;(a.patients || []).forEach(pid => {
-      patientCaregiverCount[pid] = (patientCaregiverCount[pid] || 0) + 1
-    })
-  })
-
-  const selectedCaregiverRow     = assignments.find(a => rowEmail(a) === caregiver)
-  const alreadyWithThisCaregiver = new Set(selectedCaregiverRow?.patients || [])
+  const selectedRow      = assignments.find(a => rowEmail(a) === caregiver)
+  const existingPatients = selectedRow?.patients || []
+  const existingSet      = new Set(existingPatients)
 
   const currentCount   = caregiverCurrentCount[caregiver] || 0
-  const selectedCount  = Object.keys(selected).length
-  const projectedCount = currentCount + selectedCount
+  const newCount       = Object.keys(selected).filter(p => !existingSet.has(p)).length
+  const projectedCount = currentCount + newCount
 
-  const patientsAtMaxCaregivers = Object.keys(selected).filter(
-    pid => (patientCaregiverCount[pid] || 0) >= MAX_CUIDADORES_POR_PACIENTE
-  )
-  const patientsAlreadyAssigned = Object.keys(selected).filter(
-    pid => alreadyWithThisCaregiver.has(pid)
-  )
+  // Pacientes ya seleccionados que están con OTRO cuidador → advertencia de reasignación
+  const toReassign = Object.keys(selected).filter(p => {
+    const pat = pacientes.find(x => x.code === p)
+    return pat?.caregiver && pat.caregiver !== caregiver
+  })
+
   const caregiverWouldExceed = projectedCount > MAX_PACIENTES_POR_CUIDADOR
+  const canAssign = caregiver && Object.keys(selected).length > 0 && !caregiverWouldExceed
 
-  const blockingErrors = [
-    ...patientsAlreadyAssigned.map(pid => `${pid} ya está asignado a este cuidador.`),
-    ...patientsAtMaxCaregivers.map(pid => `${pid} ya tiene ${MAX_CUIDADORES_POR_PACIENTE} cuidadores (límite máximo).`),
-    caregiverWouldExceed
-      ? `Este cuidador llegaría a ${projectedCount} pacientes (límite: ${MAX_PACIENTES_POR_CUIDADOR}).`
-      : null,
-  ].filter(Boolean)
-
-  const canAssign = caregiver && selectedCount > 0 && blockingErrors.length === 0
-
-  const togglePat = (code, name) => {
+  const togglePat = (code) => {
     setSelected(prev => {
       const next = { ...prev }
-      if (next[code]) delete next[code]; else next[code] = name
+      if (next[code]) delete next[code]; else next[code] = true
       return next
     })
   }
 
-  const removeTag = (code) => setSelected(prev => { const n = { ...prev }; delete n[code]; return n })
-
   async function doAssign() {
     if (!canAssign) return
-    setSaving(true)
-    setSaveError('')
+    setSaving(true); setSaveError('')
     try {
-      await api.post('/admin/asignaciones', {
-        cuidador_email: caregiver,
-        patient_ids: Object.keys(selected),
-      })
+      // CRÍTICO: enviar lista completa (existentes + nuevos) para que el sync no borre a nadie
+      const merged = [...new Set([...existingPatients, ...Object.keys(selected)])]
+      await api.post('/admin/asignaciones', { cuidador_email: caregiver, patient_ids: merged })
       setCaregiver(''); setSelected({})
-      setSaveMsg('Asignación registrada correctamente.')
+      setSaveMsg(`${Object.keys(selected).length} paciente(s) asignado(s) correctamente.`)
       setTimeout(() => setSaveMsg(''), 4000)
       load()
     } catch (err) {
-      const msg = err.response?.data?.message || err.response?.data?.error || ''
+      const msg = err.response?.data?.error || ''
       setSaveError('Error al registrar la asignación' + (msg ? `: ${msg}` : '.'))
-    } finally {
-      setSaving(false)
-    }
+    } finally { setSaving(false) }
   }
 
-  // Quitar un paciente específico de un cuidador
   async function doRemovePatient() {
-    if (!confirmRemove || removeLoading) return
-    const { email, pid } = confirmRemove
+    if (!removingPid || removeLoading) return
+    const { email, pid } = removingPid
     const row = assignments.find(a => rowEmail(a) === email)
     if (!row) return
-
     const remaining = (row.patients || []).filter(p => p !== pid)
-    setRemoveLoading(true)
-    setRemoveError('')
+    setRemoveLoading(true); setRemoveError('')
     try {
       if (remaining.length === 0) {
-        // Sin pacientes → eliminar la asignación entera del cuidador
         await api.delete(`/admin/asignaciones/${encodeURIComponent(email)}`)
         setManagingRow(null)
       } else {
-        // Quedan pacientes → sobreescribir con lista actualizada
-        await api.post('/admin/asignaciones', {
-          cuidador_email: email,
-          patient_ids: remaining,
-        })
+        await api.post('/admin/asignaciones', { cuidador_email: email, patient_ids: remaining })
       }
-      setConfirmRemove(null)
-      setSaveMsg(`Paciente ${pid} desvinculado correctamente.`)
+      setRemovingPid(null)
+      setSaveMsg(`${pid} desvinculado correctamente.`)
       setTimeout(() => setSaveMsg(''), 4000)
       load()
-    } catch (err) {
-      const msg = err.response?.data?.message || err.response?.data?.error || ''
-      setRemoveError('Error al desvincular' + (msg ? `: ${msg}` : '.'))
-    } finally {
-      setRemoveLoading(false)
-    }
+    } catch {
+      setRemoveError('Error al desvincular. Inténtalo de nuevo.')
+    } finally { setRemoveLoading(false) }
   }
 
-  const visiblePatients    = pacientes.filter(p => !patSearch || p.name.toLowerCase().includes(patSearch.toLowerCase()) || p.code.toLowerCase().includes(patSearch.toLowerCase()))
-  const visibleAssignments = assignments.filter(a => !assignSearch || a.cuidador.toLowerCase().includes(assignSearch.toLowerCase()) || (a.patients || []).some(p => p.toLowerCase().includes(assignSearch.toLowerCase())))
+  const visiblePats = pacientes.filter(p =>
+    !patSearch ||
+    p.name.toLowerCase().includes(patSearch.toLowerCase()) ||
+    p.code.toLowerCase().includes(patSearch.toLowerCase())
+  )
+
+  const visibleAssignments = assignments.filter(a =>
+    !assignSearch ||
+    a.cuidador.toLowerCase().includes(assignSearch.toLowerCase()) ||
+    (a.patients || []).some(p => p.toLowerCase().includes(assignSearch.toLowerCase()))
+  )
 
   return (
     <div className="admin-panel">
       <style>{`
-        .limit-badge{display:inline-flex;align-items:center;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:600;margin-left:auto;flex-shrink:0;}
+        /* ── form card ── */
+        .asig-layout{display:flex;gap:20px;padding:20px 24px;flex:1;overflow:hidden;min-height:0;}
+        .asig-form{width:320px;flex-shrink:0;display:flex;flex-direction:column;gap:0;overflow-y:auto;}
+        .asig-table-section{flex:1;min-width:0;display:flex;flex-direction:column;gap:0;}
+        .form-card{background:var(--c-surface);border:0.5px solid var(--c-border);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:14px;}
+        .form-title{font-size:13px;font-weight:600;color:var(--c-navy);letter-spacing:-0.01em;}
+        .field-label{font-size:11px;font-weight:500;color:var(--c-text-sec);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;display:block;}
+        .field-select{width:100%;padding:9px 12px;font-size:12px;border:0.5px solid var(--c-border-input);border-radius:8px;background:var(--c-surface);color:var(--c-navy);outline:none;font-family:inherit;cursor:pointer;}
+        .field-select:focus{border-color:var(--c-blue);}
+        /* ── capacity bar ── */
+        .cap-row{display:flex;justify-content:space-between;font-size:11px;color:var(--c-text-sec);margin-bottom:4px;}
+        .cap-bar{height:3px;border-radius:2px;background:#E5E7EB;overflow:hidden;}
+        .cap-fill{height:100%;border-radius:2px;transition:width .3s;}
+        /* ── patient list ── */
+        .pat-search{width:100%;padding:7px 10px;font-size:12px;border:0.5px solid var(--c-border-input);border-radius:7px;background:var(--c-surface-alt);color:var(--c-navy);outline:none;font-family:inherit;margin-bottom:6px;}
+        .pat-search:focus{border-color:var(--c-blue);}
+        .pat-list{border:0.5px solid var(--c-border);border-radius:8px;overflow-y:auto;max-height:240px;background:var(--c-surface);}
+        .pat-item{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-bottom:0.5px solid var(--c-border-sub);transition:background .1s;}
+        .pat-item:last-child{border-bottom:none;}
+        .pat-item:hover{background:var(--c-row-hover);}
+        .pat-item.sel{background:#EFF6FF;}
+        .pat-cb{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--c-border-input);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+        .pat-item.sel .pat-cb{background:var(--c-blue);border-color:var(--c-blue);}
+        .pat-cb-check{width:8px;height:8px;stroke:#fff;fill:none;}
+        .pat-info{flex:1;min-width:0;}
+        .pat-name{font-size:12px;font-weight:500;color:var(--c-navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .pat-code{font-size:10px;color:var(--c-text-muted);}
+        .pat-badge{font-size:10px;font-weight:500;padding:1px 7px;border-radius:999px;white-space:nowrap;flex-shrink:0;}
+        .pb-mine{background:#EFF6FF;color:#1D5FA8;}
+        .pb-other{background:#FEF9C3;color:#854D0E;}
+        .pb-none{background:#F0FDF4;color:#166534;}
+        /* ── tags ── */
+        .tags-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;min-height:24px;}
+        .tag{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:500;background:#EFF6FF;color:#1D5FA8;border:0.5px solid #BFDBFE;}
+        .tag-x{cursor:pointer;font-size:14px;line-height:1;opacity:0.6;margin-left:1px;}
+        .tag-x:hover{opacity:1;}
+        /* ── warnings / errors ── */
+        .warn-box{background:#FFFBEB;border:0.5px solid #FCD34D;border-radius:8px;padding:9px 12px;font-size:11px;color:#92400E;line-height:1.5;}
+        .warn-title{font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:0.04em;margin-bottom:4px;}
+        .err-box{background:#FEF2F2;border:0.5px solid #FCA5A5;border-radius:8px;padding:9px 12px;font-size:11px;color:#7F1D1D;line-height:1.5;}
+        /* ── table section ── */
+        .asig-table-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+        .asig-table-heading{font-size:13px;font-weight:600;color:var(--c-navy);}
+        /* ── assignment row ── */
+        .cg-name{font-size:12px;font-weight:500;color:var(--c-navy);}
+        .cg-email{font-size:10px;color:var(--c-text-muted);margin-top:1px;}
+        .pills-wrap{display:flex;flex-wrap:wrap;gap:5px;}
+        .pat-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:11px;background:#E0EEFF;color:#1D5FA8;border:0.5px solid #B8D4F5;}
+        .pat-pill.removing{background:#FEE2E2;color:#991B1B;border-color:#FCA5A5;}
+        .pill-x{cursor:pointer;font-size:13px;line-height:1;margin-left:2px;opacity:0.6;transition:opacity .1s;}
+        .pill-x:hover{opacity:1;}
+        .pat-name-small{font-size:10px;color:var(--c-text-muted);margin-left:2px;}
+        .confirm-bar{display:flex;align-items:center;gap:8px;background:#FEF9C3;border:0.5px solid #FCD34D;border-radius:8px;padding:8px 12px;margin-top:8px;flex-wrap:wrap;}
+        .confirm-text{flex:1;font-size:12px;color:#92400E;}
+        .limit-badge{display:inline-flex;align-items:center;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:600;}
         .lb-ok{background:#ECFDF5;color:#065F46;}
         .lb-warn{background:#FEF3C7;color:#92400E;}
         .lb-full{background:#FEE2E2;color:#991B1B;}
-        .pat-caregiver-count{font-size:10px;color:#7A8FA8;margin-left:6px;}
-        .pat-caregiver-full{font-size:10px;color:#DC2626;font-weight:600;margin-left:6px;}
-        .block-error-list{background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:10px 12px;margin-top:10px;}
-        .block-error-title{font-size:11px;font-weight:700;color:#991B1B;text-transform:uppercase;margin-bottom:6px;}
-        .block-error-item{font-size:11px;color:#7F1D1D;margin-bottom:3px;display:flex;gap:6px;align-items:flex-start;}
-        .block-error-item:last-child{margin-bottom:0;}
-        .multi-item.disabled-pat{opacity:0.5;cursor:not-allowed;}
-        .multi-item.already-assigned{background:#FFF7ED;}
-        .pat-already{font-size:10px;color:#D97706;font-weight:600;margin-left:auto;}
-        .capacity-bar{height:4px;border-radius:2px;background:#E5E7EB;margin-top:6px;overflow:hidden;}
-        .capacity-fill{height:100%;border-radius:2px;transition:width .3s;}
-        .manage-row{background:#F0F6FF !important;}
-        .manage-row td{padding-top:10px !important;padding-bottom:10px !important;}
-        .removable-pills{display:flex;flex-wrap:wrap;gap:6px;}
-        .removable-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:500;background:#E0EEFF;color:#1D5FA8;border:1px solid #B8D4F5;}
-        .removable-pill.removing{background:#FEE2E2;color:#991B1B;border-color:#FCA5A5;}
-        .pill-x{cursor:pointer;font-size:13px;line-height:1;margin-left:2px;opacity:0.7;}
-        .pill-x:hover{opacity:1;}
-        .confirm-remove-row{background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:8px 12px;margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-        .confirm-remove-text{font-size:12px;color:#92400E;flex:1;}
-        .manage-hint{font-size:11px;color:#5B7FA6;margin-top:6px;font-style:italic;}
-        .btn-gestionar{font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid #B8D4F5;background:#F0F6FF;color:#1D5FA8;cursor:pointer;font-family:inherit;font-weight:600;transition:background .15s;}
-        .btn-gestionar:hover{background:#DBEAFE;}
+        .btn-gestionar{font-size:11px;padding:5px 10px;border-radius:6px;border:0.5px solid var(--c-border-input);background:var(--c-surface-alt);color:var(--c-navy);cursor:pointer;font-family:inherit;font-weight:500;transition:background .15s,color .15s;}
+        .btn-gestionar:hover{background:#EFF6FF;border-color:#BFDBFE;color:#1D5FA8;}
         .btn-gestionar.active{background:#1D5FA8;color:#fff;border-color:#1D5FA8;}
+        .manage-row td{background:#F8FBFF !important;}
       `}</style>
 
-      <div className="content-wrap">
+      <div className="asig-layout">
 
-        {/* ── Formulario nueva asignación ── */}
-        <div className="assign-panel">
+        {/* ── Panel izquierdo: nueva asignación ── */}
+        <div className="asig-form">
           <div className="form-card">
             <div className="form-title">Nueva asignación</div>
 
-            <div className="field-wrap">
+            {/* Cuidador */}
+            <div>
               <label className="field-label">Cuidador</label>
               <select
                 className="field-select"
@@ -201,7 +208,7 @@ export default function AdminAsignaciones() {
                   const full = cnt >= MAX_PACIENTES_POR_CUIDADOR
                   return (
                     <option key={c.email} value={c.email} disabled={full}>
-                      {c.nombre} — {cnt}/{MAX_PACIENTES_POR_CUIDADOR} pacientes{full ? ' (completo)' : ''}
+                      {c.nombre}{full ? ' (cupo lleno)' : ` · ${cnt}/${MAX_PACIENTES_POR_CUIDADOR}`}
                     </option>
                   )
                 })}
@@ -209,14 +216,14 @@ export default function AdminAsignaciones() {
 
               {caregiver && (
                 <div style={{ marginTop: 8 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#5B7FA6', marginBottom: 4 }}>
-                    <span>Capacidad actual</span>
-                    <span style={{ fontWeight: 600, color: projectedCount > MAX_PACIENTES_POR_CUIDADOR ? '#DC2626' : projectedCount >= MAX_PACIENTES_POR_CUIDADOR * 0.75 ? '#D97706' : '#065F46' }}>
-                      {selectedCount > 0 ? `${currentCount} + ${selectedCount} = ` : ''}{projectedCount}/{MAX_PACIENTES_POR_CUIDADOR}
+                  <div className="cap-row">
+                    <span>Capacidad</span>
+                    <span style={{ fontWeight: 600, color: projectedCount > MAX_PACIENTES_POR_CUIDADOR ? '#DC2626' : projectedCount >= MAX_PACIENTES_POR_CUIDADOR * 0.75 ? '#D97706' : '#059669' }}>
+                      {newCount > 0 ? `${currentCount} + ${newCount} = ` : ''}{projectedCount}/{MAX_PACIENTES_POR_CUIDADOR}
                     </span>
                   </div>
-                  <div className="capacity-bar">
-                    <div className="capacity-fill" style={{
+                  <div className="cap-bar">
+                    <div className="cap-fill" style={{
                       width: `${Math.min(100, (projectedCount / MAX_PACIENTES_POR_CUIDADOR) * 100)}%`,
                       background: projectedCount > MAX_PACIENTES_POR_CUIDADOR ? '#DC2626' : projectedCount >= MAX_PACIENTES_POR_CUIDADOR * 0.75 ? '#D97706' : '#059669',
                     }} />
@@ -225,169 +232,205 @@ export default function AdminAsignaciones() {
               )}
             </div>
 
-            <div className="field-wrap">
-              <label className="field-label">Pacientes a asignar</label>
-              <div className="multi-wrap">
-                <input className="multi-search" type="text" placeholder="Buscar paciente..."
-                  value={patSearch} onChange={e => setPatSearch(e.target.value)} />
-                <div className="multi-list">
-                  {loading
-                    ? <div style={{ padding: 12, fontSize: 12, color: '#7A8FA8' }}>Cargando...</div>
-                    : visiblePatients.map(p => {
-                      const cgCount    = patientCaregiverCount[p.code] || 0
-                      const atMax      = cgCount >= MAX_CUIDADORES_POR_PACIENTE
-                      const alreadyHere = alreadyWithThisCaregiver.has(p.code)
-                      const isSelected  = !!selected[p.code]
-                      return (
-                        <div
-                          key={p.code}
-                          className={`multi-item${isSelected ? ' selected' : ''}${atMax || alreadyHere ? ' disabled-pat' : ''}${alreadyHere && !atMax ? ' already-assigned' : ''}`}
-                          onClick={() => { if (!atMax && !alreadyHere) togglePat(p.code, p.name) }}
-                          title={alreadyHere ? 'Ya asignado a este cuidador' : atMax ? `Cupo lleno (${MAX_CUIDADORES_POR_PACIENTE}/${MAX_CUIDADORES_POR_PACIENTE} cuidadores)` : undefined}
-                        >
-                          <div className="multi-cb">{isSelected && <span className="multi-check">✓</span>}</div>
-                          <span>{p.name}</span>
-                          <span className="pat-code">{p.code}</span>
-                          {alreadyHere
-                            ? <span className="pat-already">Ya asignado</span>
-                            : atMax
-                            ? <span className="pat-caregiver-full">{cgCount}/{MAX_CUIDADORES_POR_PACIENTE} cupo lleno</span>
-                            : cgCount > 0
-                            ? <span className="pat-caregiver-count">{cgCount}/{MAX_CUIDADORES_POR_PACIENTE}</span>
-                            : null
-                          }
+            {/* Pacientes */}
+            <div>
+              <label className="field-label">Pacientes</label>
+              <input
+                className="pat-search"
+                type="text"
+                placeholder="Buscar paciente..."
+                value={patSearch}
+                onChange={e => setPatSearch(e.target.value)}
+              />
+              <div className="pat-list">
+                {loading
+                  ? <div style={{ padding: '14px 12px', fontSize: 12, color: 'var(--c-text-sec)' }}>Cargando...</div>
+                  : visiblePats.length === 0
+                  ? <div style={{ padding: '14px 12px', fontSize: 12, color: 'var(--c-text-sec)' }}>Sin resultados.</div>
+                  : visiblePats.map(p => {
+                    const isSel     = !!selected[p.code]
+                    const isMine    = existingSet.has(p.code)
+                    const hasOther  = !isMine && !!p.caregiver
+
+                    let badge = null
+                    if (isMine)       badge = <span className="pat-badge pb-mine">Ya asignado</span>
+                    else if (hasOther) badge = <span className="pat-badge pb-other">Con {p.caregiverName || p.caregiver}</span>
+                    else              badge = <span className="pat-badge pb-none">Libre</span>
+
+                    return (
+                      <div
+                        key={p.code}
+                        className={`pat-item${isSel ? ' sel' : ''}`}
+                        onClick={() => { if (!isMine) togglePat(p.code) }}
+                        style={isMine ? { cursor: 'default', opacity: 0.6 } : undefined}
+                        title={isMine ? 'Ya está asignado a este cuidador' : hasOther ? `Reasignar desde ${p.caregiverName || p.caregiver}` : undefined}
+                      >
+                        <div className="pat-cb">
+                          {isSel && (
+                            <svg className="pat-cb-check" viewBox="0 0 8 8" strokeWidth="1.8">
+                              <polyline points="1,4 3,6 7,2"/>
+                            </svg>
+                          )}
                         </div>
-                      )
-                    })
-                  }
+                        <div className="pat-info">
+                          <div className="pat-name">{p.name}</div>
+                          <div className="pat-code">{p.code}</div>
+                        </div>
+                        {badge}
+                      </div>
+                    )
+                  })
+                }
+              </div>
+
+              {/* Tags de selección */}
+              {Object.keys(selected).length > 0 && (
+                <div className="tags-wrap">
+                  {Object.keys(selected).map(code => {
+                    const p = pacientes.find(x => x.code === code)
+                    return (
+                      <div key={code} className="tag">
+                        {p?.name || code}
+                        <span className="tag-x" onClick={() => {
+                          setSelected(prev => { const n = {...prev}; delete n[code]; return n })
+                        }}>×</span>
+                      </div>
+                    )
+                  })}
                 </div>
-              </div>
-              <div className="tags-wrap">
-                {Object.entries(selected).map(([code]) => (
-                  <div key={code} className="tag">{code}<span className="tag-x" onClick={() => removeTag(code)}>×</span></div>
-                ))}
-              </div>
+              )}
             </div>
 
-            {caregiver && selectedCount > 0 && blockingErrors.length > 0 && (
-              <div className="block-error-list">
-                <div className="block-error-title">No se puede confirmar</div>
-                {blockingErrors.map((e, i) => (
-                  <div key={i} className="block-error-item"><span>·</span><span>{e}</span></div>
-                ))}
+            {/* Advertencia de reasignación */}
+            {toReassign.length > 0 && (
+              <div className="warn-box">
+                <div className="warn-title">Reasignación</div>
+                {toReassign.map(code => {
+                  const p = pacientes.find(x => x.code === code)
+                  return <div key={code}>· <strong>{p?.name || code}</strong> se moverá desde <em>{p?.caregiverName || p?.caregiver}</em></div>
+                })}
               </div>
             )}
 
-            <button className="btn btn-primary" style={{ width: '100%', marginTop: 12 }} disabled={!canAssign || saving} onClick={doAssign}>
-              {saving ? 'Guardando...' : 'Confirmar asignación'}
+            {/* Error de capacidad */}
+            {caregiverWouldExceed && (
+              <div className="err-box">
+                Límite superado: este cuidador llegaría a {projectedCount}/{MAX_PACIENTES_POR_CUIDADOR} pacientes.
+              </div>
+            )}
+
+            <button
+              className="btn btn-primary"
+              style={{ width: '100%' }}
+              disabled={!canAssign || saving}
+              onClick={doAssign}
+            >
+              {saving ? 'Guardando...' : `Confirmar asignación${Object.keys(selected).length > 0 ? ` (${Object.keys(selected).length})` : ''}`}
             </button>
-            {saveError && <div className="action-error">{saveError}</div>}
+
+            {saveError && <div className="err-box">{saveError}</div>}
             {saveMsg   && <div className="action-success">{saveMsg}</div>}
-            {loadError && <div className="action-error">{loadError}</div>}
+            {loadError && <div className="err-box">{loadError}</div>}
           </div>
         </div>
 
-        {/* ── Tabla de asignaciones activas ── */}
-        <div className="table-section">
-          <div className="table-top">
-            <div className="table-heading">Asignaciones activas</div>
+        {/* ── Panel derecho: asignaciones activas ── */}
+        <div className="asig-table-section">
+          <div className="asig-table-top">
+            <div className="asig-table-heading">
+              Asignaciones activas
+              <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--c-text-sec)', marginLeft: 8 }}>
+                {assignments.length} cuidador{assignments.length !== 1 ? 'es' : ''}
+              </span>
+            </div>
             <div className="search-wrap" style={{ width: 220, flex: 'none' }}>
               <svg className="search-icon" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#7A8FA8" strokeWidth="1.5">
                 <circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l2.5 2.5"/>
               </svg>
-              <input className="search-input" type="text" placeholder="Buscar cuidador o paciente..."
-                value={assignSearch} onChange={e => setAssignSearch(e.target.value)} />
+              <input
+                className="search-input"
+                type="text"
+                placeholder="Buscar cuidador o paciente..."
+                value={assignSearch}
+                onChange={e => setAssignSearch(e.target.value)}
+              />
             </div>
           </div>
 
           <div className="table-outer">
-            <table className="admin-table" style={{ minWidth: 520 }}>
+            <table className="admin-table" style={{ minWidth: 500 }}>
               <thead>
                 <tr>
                   <th>Cuidador</th>
                   <th>Pacientes asignados</th>
-                  <th style={{ width: 70 }}>Cupos</th>
-                  <th style={{ width: 100 }}>Acciones</th>
+                  <th style={{ width: 60 }}>Cupos</th>
+                  <th style={{ width: 90 }}></th>
                 </tr>
               </thead>
               <tbody>
                 {loading && (
-                  <tr><td colSpan="4" className="state-empty"><div className="spinner" style={{ margin: '0 auto' }} /></td></tr>
+                  <tr><td colSpan="4" className="state-empty"><div className="spinner" style={{ margin: '0 auto' }}/></td></tr>
                 )}
                 {!loading && visibleAssignments.length === 0 && (
                   <tr><td colSpan="4" className="state-empty">Sin asignaciones activas.</td></tr>
                 )}
                 {!loading && visibleAssignments.map((a, i) => {
-                  const email    = rowEmail(a)
-                  const patients = a.patients || []
-                  const cnt      = patients.length
-                  const pct      = cnt / MAX_PACIENTES_POR_CUIDADOR
-                  const lbCls    = cnt >= MAX_PACIENTES_POR_CUIDADOR ? 'lb-full' : pct >= 0.75 ? 'lb-warn' : 'lb-ok'
+                  const email      = rowEmail(a)
+                  const patients   = a.patients || []
+                  const names      = a.patientNames || {}
+                  const cnt        = patients.length
+                  const pct        = cnt / MAX_PACIENTES_POR_CUIDADOR
+                  const lbCls      = cnt >= MAX_PACIENTES_POR_CUIDADOR ? 'lb-full' : pct >= 0.75 ? 'lb-warn' : 'lb-ok'
                   const isManaging = managingRow === email
 
                   return (
                     <tr key={i} className={isManaging ? 'manage-row' : ''}>
                       <td>
-                        <div className="caregiver-name">{a.cuidador}</div>
-                        <div className="caregiver-email">{email}</div>
+                        <div className="cg-name">{a.cuidador}</div>
+                        <div className="cg-email">{email}</div>
                       </td>
 
                       <td>
-                        {!isManaging ? (
-                          /* Modo normal: pills de solo lectura */
-                          <div className="pat-pills">
-                            {patients.map(p => <span key={p} className="pat-pill">{p}</span>)}
-                          </div>
-                        ) : (
-                          /* Modo gestión: chips removibles */
-                          <div>
-                            <div className="removable-pills">
-                              {patients.map(p => {
-                                const isPending = confirmRemove?.email === email && confirmRemove?.pid === p
-                                return (
+                        <div className="pills-wrap">
+                          {patients.map(p => {
+                            const isPending = removingPid?.email === email && removingPid?.pid === p
+                            return (
+                              <span
+                                key={p}
+                                className={`pat-pill${isPending ? ' removing' : ''}`}
+                                title={names[p] || p}
+                              >
+                                {names[p] || p}
+                                {isManaging && (
                                   <span
-                                    key={p}
-                                    className={`removable-pill${isPending ? ' removing' : ''}`}
-                                    title="Clic en × para quitar este paciente"
-                                  >
-                                    {p}
-                                    <span
-                                      className="pill-x"
-                                      onClick={() => {
-                                        setRemoveError('')
-                                        setConfirmRemove(isPending ? null : { email, pid: p })
-                                      }}
-                                    >×</span>
-                                  </span>
-                                )
-                              })}
-                            </div>
+                                    className="pill-x"
+                                    onClick={() => {
+                                      setRemoveError('')
+                                      setRemovingPid(isPending ? null : { email, pid: p })
+                                    }}
+                                  >×</span>
+                                )}
+                              </span>
+                            )
+                          })}
+                        </div>
 
-                            {/* Confirmación inline por paciente */}
-                            {confirmRemove?.email === email && (
-                              <div className="confirm-remove-row">
-                                <span className="confirm-remove-text">
-                                  ¿Quitar <strong>{confirmRemove.pid}</strong> de este cuidador?
-                                </span>
-                                <button
-                                  className="btn btn-sm btn-danger"
-                                  disabled={removeLoading}
-                                  onClick={doRemovePatient}
-                                >
-                                  {removeLoading ? '...' : 'Confirmar'}
-                                </button>
-                                <button
-                                  className="btn btn-sm btn-secondary"
-                                  disabled={removeLoading}
-                                  onClick={() => { setConfirmRemove(null); setRemoveError('') }}
-                                >
-                                  Cancelar
-                                </button>
-                              </div>
-                            )}
-                            {removeError && <div className="action-error" style={{ marginTop: 6 }}>{removeError}</div>}
-                            <div className="manage-hint">Haz clic en × sobre un paciente para quitarlo.</div>
+                        {/* Confirmación inline */}
+                        {isManaging && removingPid?.email === email && (
+                          <div className="confirm-bar">
+                            <span className="confirm-text">
+                              ¿Quitar <strong>{names[removingPid.pid] || removingPid.pid}</strong>?
+                            </span>
+                            <button className="btn btn-sm btn-danger" disabled={removeLoading} onClick={doRemovePatient}>
+                              {removeLoading ? '...' : 'Confirmar'}
+                            </button>
+                            <button className="btn btn-sm btn-secondary" disabled={removeLoading} onClick={() => { setRemovingPid(null); setRemoveError('') }}>
+                              Cancelar
+                            </button>
                           </div>
+                        )}
+                        {isManaging && removeError && (
+                          <div className="err-box" style={{ marginTop: 6, fontSize: 11 }}>{removeError}</div>
                         )}
                       </td>
 
@@ -400,7 +443,7 @@ export default function AdminAsignaciones() {
                           className={`btn-gestionar${isManaging ? ' active' : ''}`}
                           onClick={() => {
                             setManagingRow(isManaging ? null : email)
-                            setConfirmRemove(null)
+                            setRemovingPid(null)
                             setRemoveError('')
                           }}
                         >
@@ -414,7 +457,6 @@ export default function AdminAsignaciones() {
             </table>
           </div>
         </div>
-
       </div>
     </div>
   )

@@ -568,8 +568,10 @@ export default function SesionDetalle() {
     const ftData = data.filter((e) => ['fingertapping', 'ft', 'fingertap'].includes(normalize(e.test_type)));
     const hoData = data.filter((e) => ['handopening', 'ho', 'aperturacierre', 'opening'].includes(normalize(e.test_type)));
     const psData = data.filter((e) => ['pronationsupination', 'ps', 'pronacion', 'supination'].includes(normalize(e.test_type)));
+    const unknownCount = data.filter((e) => normalize(e.test_type) === 'unknown' || !e.test_type).length;
 
-    const ftFinal = ftData.length > 0 ? ftData : data;
+    // Never fall back to all data — each exercise shows only its own events
+    const ftFinal = ftData;
     const hoFinal = hoData;
     const psFinal = psData;
 
@@ -625,51 +627,94 @@ export default function SesionDetalle() {
       dataset.some((e) => medState(e) === 'ON') && dataset.some((e) => medState(e) === 'OFF');
 
     // ── Sub-vistas por ejercicio ──
+    // Detect if per-hand detailed data is available (non-zero for any event)
+    const hasPerHandData = ftFinal.some(
+      (e) => (e.total_taps_left || e.total_taps_right || e.mean_amplitude_left || e.mean_amplitude_right) > 0
+    );
+    const hasFreqData = ftFinal.some((e) => (e.tap_frequency_left || e.tap_frequency_right) > 0);
+
+    // Aggregate chart data usable regardless of data source
+    const ftAggData = ftFinal.map((e) => ({
+      label:     fmt(e.timestamp),
+      velocity:  fv(e.velocity ?? e.mean_velocity),
+      amplitude: fv(e.amplitude),
+    }));
+
     const renderFingerTapping = () => (
       <div>
         <OnOffChart
           chartData={buildOnOffChart(ftFinal, [
-            { label: 'Taps Izq.',   getter: (e) => e.total_taps_left  ?? e.taps_left  ?? (e.hand === 'left'  ? e.total_taps : 0) },
-            { label: 'Taps Der.',   getter: (e) => e.total_taps_right ?? e.taps_right ?? (e.hand === 'right' ? e.total_taps : 0) },
-            { label: 'Frec. Izq.', getter: (e) => e.tap_frequency_left  ?? (e.hand === 'left'  ? e.tap_frequency ?? e.frequency : 0) },
-            { label: 'Frec. Der.', getter: (e) => e.tap_frequency_right ?? (e.hand === 'right' ? e.tap_frequency ?? e.frequency : 0) },
-            { label: 'Amp. Izq.',  getter: (e) => e.mean_amplitude_left  ?? (e.hand === 'left'  ? e.amplitude : 0) },
-            { label: 'Amp. Der.',  getter: (e) => e.mean_amplitude_right ?? (e.hand === 'right' ? e.amplitude : 0) },
+            { label: 'Velocidad',  getter: (e) => e.velocity  ?? e.mean_velocity },
+            { label: 'Amplitud',   getter: (e) => e.amplitude },
+            ...(hasPerHandData ? [
+              { label: 'Taps Izq.',  getter: (e) => e.total_taps_left  ?? e.taps_left  ?? 0 },
+              { label: 'Taps Der.',  getter: (e) => e.total_taps_right ?? e.taps_right ?? 0 },
+            ] : []),
           ])}
           hasData={hasOnOff(ftFinal)}
           title="Finger Tapping"
         />
-        <h4 style={{ color: '#444', marginBottom: '8px' }}>Taps totales y amplitud media por sesión</h4>
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={ftChartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-            <YAxis /><Tooltip /><Legend />
-            <Bar dataKey="taps_izq" fill="#3498DB" name="Taps izquierda" />
-            <Bar dataKey="taps_der" fill="#E74C3C" name="Taps derecha" />
-            <Bar dataKey="amp_izq"  fill="#85C1E9" name="Amplitud izq. (mm)" />
-            <Bar dataKey="amp_der"  fill="#F1948A" name="Amplitud der. (mm)" />
-          </BarChart>
-        </ResponsiveContainer>
 
-        <h4 style={{ color: '#444', margin: '20px 0 4px' }}>Frecuencia de tapping por sesión</h4>
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '10px', fontSize: '11px' }}>
-          <span style={{ background: '#d4edda', color: '#155724', padding: '2px 8px', borderRadius: '4px' }}>Normal ≥ 4 Hz</span>
-          <span style={{ background: '#fff3cd', color: '#856404', padding: '2px 8px', borderRadius: '4px' }}>Leve 3–4 Hz</span>
-          <span style={{ background: '#f8d7da', color: '#721c24', padding: '2px 8px', borderRadius: '4px' }}>Bradicinesia &lt; 3 Hz</span>
-        </div>
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={ftChartData}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-            <YAxis label={{ value: 'Hz', angle: -90, position: 'insideLeft' }} />
-            <Tooltip /><Legend />
-            <ReferenceLine y={4} stroke="#27AE60" strokeDasharray="5 4" label={{ value: 'Normal ≥ 4 Hz', position: 'insideTopLeft', fontSize: 10, fill: '#155724' }} />
-            <ReferenceLine y={3} stroke="#E74C3C" strokeDasharray="5 4" label={{ value: 'Bradicinesia < 3 Hz', position: 'insideBottomLeft', fontSize: 10, fill: '#721c24' }} />
-            <Bar dataKey="freq_izq" fill="#1ABC9C" name="Frecuencia izquierda (Hz)" radius={[3,3,0,0]} />
-            <Bar dataKey="freq_der" fill="#E67E22" name="Frecuencia derecha (Hz)" radius={[3,3,0,0]} />
-          </BarChart>
-        </ResponsiveContainer>
+        {hasPerHandData ? (
+          <>
+            <h4 style={{ color: '#444', marginBottom: '8px' }}>Taps totales y amplitud media por sesión</h4>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={ftChartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+                <YAxis /><Tooltip /><Legend />
+                <Bar dataKey="taps_izq" fill="#3498DB" name="Taps izquierda" />
+                <Bar dataKey="taps_der" fill="#E74C3C" name="Taps derecha" />
+                <Bar dataKey="amp_izq"  fill="#85C1E9" name="Amplitud izq. (mm)" />
+                <Bar dataKey="amp_der"  fill="#F1948A" name="Amplitud der. (mm)" />
+              </BarChart>
+            </ResponsiveContainer>
+          </>
+        ) : (
+          <>
+            <h4 style={{ color: '#444', marginBottom: '4px' }}>Velocidad y amplitud del movimiento</h4>
+            <p style={{ fontSize: '11px', color: '#888', marginBottom: '10px' }}>
+              Datos por mano no disponibles para esta fuente. Se muestra el promedio global del episodio.
+            </p>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={ftAggData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+                <YAxis label={{ value: 'mm / mm/s', angle: -90, position: 'insideLeft', fontSize: 10 }} />
+                <Tooltip /><Legend />
+                <Bar dataKey="velocity"  fill="#3498DB" name="Velocidad (mm/s)" radius={[3,3,0,0]} />
+                <Bar dataKey="amplitude" fill="#E74C3C" name="Amplitud (mm)"    radius={[3,3,0,0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </>
+        )}
+
+        {hasFreqData ? (
+          <>
+            <h4 style={{ color: '#444', margin: '20px 0 4px' }}>Frecuencia de tapping por sesión</h4>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '10px', fontSize: '11px' }}>
+              <span style={{ background: '#d4edda', color: '#155724', padding: '2px 8px', borderRadius: '4px' }}>Normal ≥ 4 Hz</span>
+              <span style={{ background: '#fff3cd', color: '#856404', padding: '2px 8px', borderRadius: '4px' }}>Leve 3–4 Hz</span>
+              <span style={{ background: '#f8d7da', color: '#721c24', padding: '2px 8px', borderRadius: '4px' }}>Bradicinesia &lt; 3 Hz</span>
+            </div>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={ftChartData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+                <YAxis label={{ value: 'Hz', angle: -90, position: 'insideLeft' }} />
+                <Tooltip /><Legend />
+                <ReferenceLine y={4} stroke="#27AE60" strokeDasharray="5 4" label={{ value: 'Normal ≥ 4 Hz', position: 'insideTopLeft', fontSize: 10, fill: '#155724' }} />
+                <ReferenceLine y={3} stroke="#E74C3C" strokeDasharray="5 4" label={{ value: 'Bradicinesia < 3 Hz', position: 'insideBottomLeft', fontSize: 10, fill: '#721c24' }} />
+                <Bar dataKey="freq_izq" fill="#1ABC9C" name="Frecuencia izquierda (Hz)" radius={[3,3,0,0]} />
+                <Bar dataKey="freq_der" fill="#E67E22" name="Frecuencia derecha (Hz)" radius={[3,3,0,0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </>
+        ) : (
+          <div style={{ background: '#f8f9fa', border: '1px solid #dee2e6', borderRadius: '6px', padding: '12px 16px', marginTop: '16px', fontSize: '12px', color: '#6c757d' }}>
+            📊 Frecuencia de tapping no disponible — el dispositivo no registró <code>tap_frequency</code> en esta sesión.
+          </div>
+        )}
 
         {decrementData.length > 0 && (
           <>
@@ -691,33 +736,41 @@ export default function SesionDetalle() {
       </div>
     );
 
-    const renderMovimientoSimple = (ejercicioData, chartData, titulo) => (
-      ejercicioData.length === 0
-        ? <p style={{ color: '#888', fontSize: '14px' }}>No hay registros de {titulo.toLowerCase()}.</p>
-        : (
-          <div>
-            <OnOffChart
-              chartData={buildOnOffChart(ejercicioData, [
-                { label: 'Velocidad',  getter: (e) => e.velocity  ?? e.mean_velocity },
-                { label: 'Amplitud',   getter: (e) => e.amplitude ?? e.mean_amplitude },
-                { label: 'Frecuencia', getter: (e) => e.frequency ?? e.dominant_frequency },
-              ])}
-              hasData={hasOnOff(ejercicioData)}
-              title={titulo}
-            />
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                <YAxis /><Tooltip /><Legend />
-                <Bar dataKey="velocity"  fill="#E74C3C" name="Velocidad (mm/s)" />
-                <Bar dataKey="amplitude" fill="#3498DB" name="Amplitud (mm)" />
-                <Bar dataKey="frequency" fill="#2ECC71" name="Frecuencia (Hz)" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )
-    );
+    const renderMovimientoSimple = (ejercicioData, chartData, titulo) => {
+      if (ejercicioData.length === 0)
+        return <p style={{ color: '#888', fontSize: '14px' }}>No hay registros de {titulo.toLowerCase()}.</p>;
+
+      const hasFreq = ejercicioData.some((e) => (e.frequency ?? e.dominant_frequency ?? 0) > 0);
+
+      return (
+        <div>
+          <OnOffChart
+            chartData={buildOnOffChart(ejercicioData, [
+              { label: 'Velocidad',  getter: (e) => e.velocity  ?? e.mean_velocity },
+              { label: 'Amplitud',   getter: (e) => e.amplitude ?? e.mean_amplitude },
+              ...(hasFreq ? [{ label: 'Frecuencia', getter: (e) => e.frequency ?? e.dominant_frequency }] : []),
+            ])}
+            hasData={hasOnOff(ejercicioData)}
+            title={titulo}
+          />
+          <h4 style={{ color: '#444', marginBottom: '4px' }}>Velocidad y amplitud por sesión</h4>
+          <p style={{ fontSize: '11px', color: '#888', marginBottom: '10px' }}>
+            Velocidad en mm/s · Amplitud en mm
+          </p>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+              <YAxis label={{ value: 'mm / mm/s', angle: -90, position: 'insideLeft', fontSize: 10 }} />
+              <Tooltip /><Legend />
+              <Bar dataKey="velocity"  fill="#E74C3C" name="Velocidad (mm/s)" radius={[3,3,0,0]} />
+              <Bar dataKey="amplitude" fill="#3498DB" name="Amplitud (mm)"    radius={[3,3,0,0]} />
+              {hasFreq && <Bar dataKey="frequency" fill="#2ECC71" name="Frecuencia (Hz)" radius={[3,3,0,0]} />}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      );
+    };
 
     const ejercicios = [
       { key: 'ft', label: '👆 Finger Tapping' },
@@ -737,8 +790,41 @@ export default function SesionDetalle() {
     const isHO = (e) => ['handopening','ho','aperturacierre','opening'].includes(normalize(e.test_type))
     const isPS = (e) => ['pronationsupination','ps','pronacion','supination'].includes(normalize(e.test_type))
 
+    const onCount  = data.filter((e) => (e.medication ?? '').toUpperCase() === 'ON').length;
+    const offCount = data.filter((e) => (e.medication ?? '').toUpperCase() === 'OFF').length;
+
     return (
       <div className="chart-wrapper">
+
+        {/* KPIs resumen */}
+        <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
+          <div className="stat-card">
+            <span className="stat-label">Registros totales</span>
+            <span className="stat-value">{data.length}</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">Finger Tapping</span>
+            <span className="stat-value">{ftData.length}</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">Apertura / Cierre</span>
+            <span className="stat-value">{hoData.length}</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">Pronación / Supinación</span>
+            <span className="stat-value">{psData.length}</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">Medicación ON / OFF</span>
+            <span className="stat-value">{onCount} / {offCount}</span>
+          </div>
+        </div>
+
+        {unknownCount > 0 && (
+          <div style={{ background: '#fff3cd', border: '1px solid #ffc107', borderRadius: '6px', padding: '10px 14px', marginBottom: '20px', fontSize: '12px', color: '#856404' }}>
+            ⚠️ {unknownCount} evento{unknownCount !== 1 ? 's' : ''} sin tipo de ejercicio identificado — no se incluyen en los gráficos por ejercicio.
+          </div>
+        )}
 
         <div className="data-table data-table--scroll" style={{ marginBottom: '28px' }}>
           <h3 style={{ marginBottom: '12px' }}>📋 Historial de Sesiones — Bradicinesia</h3>

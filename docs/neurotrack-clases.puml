@@ -1,0 +1,672 @@
+@startuml NeuroTrack — Diagrama de Clases
+
+skinparam {
+  ClassBackgroundColor White
+  ClassBorderColor       #1D4E89
+  PackageBorderColor     #378ADD
+  PackageBackgroundColor #F0F6FF
+  ArrowColor             #0B2545
+  NoteBorderColor        #D97706
+  NoteBackgroundColor    #FFFBEB
+  FontName               Arial
+  ClassFontSize          11
+  PackageFontSize        12
+  shadowing              false
+}
+
+hide empty members
+
+' ══════════════════════════════════════════════════════════
+' 1. ENTIDADES DynamoDB
+' ══════════════════════════════════════════════════════════
+package "DynamoDB — Entidades" #EEF4FF {
+
+  class MotorEvent <<entity>> {
+    ' Clave compuesta
+    + PK         : String  // SESSION#{session_id}
+    + SK         : String  // {module}#{timestamp}
+    ' Comunes
+    + event_id   : String
+    + patient_id : String  <<GSI-hash>>
+    + session_id : String
+    + device_id  : String
+    + timestamp  : Long    <<GSI-sort>>
+    + module     : String  // tremor | fog | bradykinesia
+    + type       : String  // (Schema B: brady_event)
+    + alert      : Boolean
+    + alert_flag : String  // (Schema B: "true"/"false")
+    + firmware_version : String
+    ==Tremor==
+    + tremor_class     : String // rest|essential (A) / leve|moderado|severo (B)
+    + severity         : String // alias Schema A
+    + tremor_frequency : Float
+    + frequency        : Float  // alias
+    + tremor_amplitude : Float
+    + amplitude        : Float  // alias
+    + accel_x : Float  // Schema A — campos planos
+    + accel_y : Float
+    + accel_z : Float
+    + accel   : Map    // Schema B — {x, y, z}
+    ==FOG==
+    + fog_class       : String // (Schema B)
+    + prediction      : String // (Schema A)
+    + fog_probability : Float  // 0.0–1.0
+    + event_start     : Long
+    + event_end       : Long
+    + duration_ms     : Long
+    ==Bradykinesia==
+    + movement              : String // Schema B: finger_tapping|...
+    + test_type             : String // Schema A: fingertapping|...
+    + medication            : String // Schema A
+    + medication_condition  : String // Schema B
+    + velocity              : Float  // mm/s
+    + mean_velocity         : Float
+    + movement_speed        : Float  // Schema B alias
+    + movement_amplitude    : Float  // Schema B alias
+    + total_taps_left       : Int
+    + total_taps_right      : Int
+    + tap_frequency_left    : Float
+    + tap_frequency_right   : Float
+    + mean_amplitude_left   : Float
+    + mean_amplitude_right  : Float
+    + amplitude_variability : Float
+    + decrement_5  : Float
+    + decrement_7  : Float
+    + decrement_10 : Float
+  }
+
+  class Patient <<entity>> {
+    + patient_id         : String <<PK>>
+    + nombre             : String
+    + edad               : Int
+    + dni                : String
+    + telefono           : String
+    + medico_id          : String <<GSI-hash>>
+    + cuidador_id        : String <<GSI-hash>>
+    + medicacion         : String
+    + dosis              : String
+    + diagnostico        : String
+    + tiempo_diagnostico : String
+    + estado             : String // Activo | Inactivo
+    + comorbilidades     : String
+    + fecha_registro     : String // YYYY-MM-DD
+  }
+
+  class Session <<entity>> {
+    + PK         : String // PATIENT#{patient_id}
+    + SK         : String // SESSION#{session_id}
+    + patient_id : String
+    + session_id : String <<GSI-hash>>
+    + start_time : String // ISO 8601
+    + status     : String // completed | active
+    + mode       : String
+    + device_id  : String
+    + sampling_rate : Int // Hz
+    + modules    : List<String>
+    ' ⚠ Sin escritor activo — 13 ítems seed
+  }
+
+  class ModuleMetrics <<entity>> {
+    + PK        : String // SESSION#{session_id}
+    + SK        : String // METRICS#{module}#{ts}
+    + patient_id : String
+    + module    : String
+    + window_start : Long
+    + window_end   : Long
+    ' ⚠ 0 ítems — diseño Anexo F sin implementar
+  }
+
+  class AuditEntry <<entity>> {
+    + PK          : String // AUDIT#{YYYY-MM-DD}
+    + SK          : String
+    + admin_email : String
+    + operation   : String // login|create|update|delete|export
+    + target      : String
+    + timestamp   : String
+  }
+
+  class NeurotrackUser <<entity>> {
+    + PK    : String
+    + SK    : String
+    + email : String
+    + role  : String // medico|cuidador|paciente|investigador|admin
+  }
+
+}
+
+' ══════════════════════════════════════════════════════════
+' 2. DTOs — tipos normalizados que produce Lambda
+' ══════════════════════════════════════════════════════════
+package "DTOs — Output normalizado de Lambda" #FFF9EC {
+
+  class TremorEvent <<dto>> {
+    + timestamp    : String
+    + severity     : String // normal|rest|essential|leve|moderado|severo
+    + frequency    : Float  // Hz
+    + amplitude    : Float  // m/s²
+    + acceleration : Float  // magnitud √(x²+y²+z²)
+    + accel_x : Float
+    + accel_y : Float
+    + accel_z : Float
+  }
+
+  class FogEvent <<dto>> {
+    + timestamp       : String
+    + prediction      : String // normal | freeze
+    + fog_probability : Float  // 0.0–1.0
+    + event_start     : Long
+    + event_end       : Long
+    + duration_ms     : Long
+    + accel           : Map    // {x, y, z}
+  }
+
+  class BradyEvent <<dto>> {
+    + timestamp    : String
+    + session_id   : String
+    + test_type    : String  // fingertapping|handopening|pronationsupination|unknown
+    + medication   : String  // ON | OFF
+    + velocity     : Float
+    + amplitude    : Float
+    + frequency    : Float
+    + mean_velocity : Float
+    + total_taps_left       : Int
+    + total_taps_right      : Int
+    + tap_frequency_left    : Float
+    + tap_frequency_right   : Float
+    + mean_amplitude_left   : Float
+    + mean_amplitude_right  : Float
+    + amplitude_variability : Float
+    + decrement_5  : Float
+    + decrement_7  : Float
+    + decrement_10 : Float
+  }
+
+  class SessionData <<dto>> {
+    + tremor       : List<TremorEvent>
+    + fog          : List<FogEvent>
+    + bradykinesia : List<BradyEvent>
+  }
+
+  class AlertEntry <<dto>> {
+    + patient_id : String
+    + module     : String
+    + timestamp  : Long
+    + time       : String  // relativo ("Hace 3h")
+    + detail     : String
+    + type       : String  // label legible
+    + level      : String  // high | medium | low
+    + typeClass  : String  // "ft-trem" | "ft-fog" | "ft-brad"
+  }
+
+  class PatientIndicators <<dto>> {
+    + patient_id    : String
+    + totalAlerts   : Int
+    + activeModules : Int
+    + lastSession   : String
+    + modules       : List<ModuleChip>
+    + history       : List<SessionChip>
+  }
+
+  class ModuleChip <<dto>> {
+    + name      : String
+    + dotClass  : String
+    + chipClass : String // ac-ok | ac-warn | ac-danger
+    + chipLabel : String
+  }
+
+  class SessionChip <<dto>> {
+    + date      : String // "DD/MM"
+    + chipClass : String
+    + chipLabel : String
+  }
+
+  SessionData *-- TremorEvent
+  SessionData *-- FogEvent
+  SessionData *-- BradyEvent
+  PatientIndicators *-- ModuleChip
+  PatientIndicators *-- SessionChip
+}
+
+' ══════════════════════════════════════════════════════════
+' 3. BACKEND — Lambda Services
+' ══════════════════════════════════════════════════════════
+package "Backend — Lambda Services" #ECFDF5 {
+
+  class SessionsLambda <<lambda>> {
+    - events_table : DynamoDB
+    + lambda_handler(event) : Response
+    --Normalización dual-schema--
+    + norm_tremor_class(val) : String
+    + norm_fog_prediction(val) : String
+    + norm_test_type(val) : String
+    + get_accel(evt) : Tuple<x,y,z>
+    --Detección de módulo--
+    + is_fog(evt) : Boolean
+    + is_tremor(evt) : Boolean
+    + is_brady(evt) : Boolean
+    ..
+    GET /sessions/{patient_id}?start_date&end_date
+  }
+
+  class PatientsLambda <<lambda>> {
+    - patients_table : DynamoDB
+    + get_patients(event) : Response
+    + create_patient(event) : Response
+    + update_patient(event) : Response
+    ..
+    GET /patients
+    POST /patients
+    PUT /patients/{patient_id}
+  }
+
+  class CuidadorLambda <<lambda>> {
+    - patients_table : DynamoDB
+    - events_table   : DynamoDB
+    + get_patients(cuidador_id) : Response
+    + get_indicators(patient_id) : Response
+    + get_alerts(cuidador_id) : Response
+    --Helpers de datos--
+    + _last_event(patient_id) : MotorEvent
+    + _active_modules(patient_id) : List<String>
+    + _count_alerts(patient_id, module) : Int
+    + _session_history(patient_id, n) : List<SessionChip>
+    --Helpers de alertas--
+    + _alert_level(mod) : String // high|medium|low
+    + _build_detail(ev) : String
+    --Helpers de formato--
+    + _fmt_relative(ts) : String
+    + _fmt_date_ms(ts) : String
+    ..
+    GET /cuidador/patients
+    GET /cuidador/patients/{id}/indicators
+    GET /cuidador/alerts
+  }
+
+  class AdminLambda <<lambda>> {
+    - patients_table : DynamoDB
+    - audit_table    : DynamoDB
+    - dynamo         : DynamoResource
+    + get_usuarios() : Response
+    + get_dashboard() : Response
+    + post_asignacion(cuidador, patient) : Response
+    + delete_asignacion(cuidador_email) : Response
+    + get_audit() : Response
+    ..
+    GET/POST/PUT/DELETE /admin/*
+  }
+
+  class AuthLambda <<lambda>> {
+    - cognito : CognitoIdp
+    + login(email, password) : Tokens
+    ..
+    POST /auth/login
+  }
+
+  class RegisterLambda <<lambda>> {
+    - cognito : CognitoIdp
+    + register(body) : Response
+    ..
+    POST /register
+  }
+
+  class MeLambda <<lambda>> {
+    - cognito : CognitoIdp
+    + get_me(claims) : UserProfile
+    ..
+    GET /me
+  }
+
+  class PacienteLambda <<lambda>> {
+    - events_table : DynamoDB
+    + get_alertas(patient_id) : Response
+    + get_dashboard(patient_id) : Response
+    + get_sesiones(patient_id) : Response
+    ..
+    GET /paciente/alertas
+    GET /paciente/dashboard
+    GET /paciente/sesiones
+  }
+
+  class InvestigadorLambda <<lambda>> {
+    - events_table : DynamoDB
+    + get_sesiones(params) : Response
+    + get_metricas(sesId) : Response
+    + exportar_csv(params) : Response
+    + poll_job(jobId) : Response
+    ..
+    GET /investigador/sesiones
+    GET /investigador/sesiones/{id}/metricas
+    GET /investigador/exportar
+    GET /investigador/exportar/jobs/{jobId}
+  }
+
+}
+
+' ══════════════════════════════════════════════════════════
+' 4. FRONTEND — Constantes
+' ══════════════════════════════════════════════════════════
+package "Frontend — Constantes" #FEF3C7 {
+
+  class DataSchema <<constants>> {
+    ' src/constants/dataSchema.js
+    + TREMOR_SEVERITY_LABEL : Map<String,String>
+    + TREMOR_SEVERITY_CSS   : Map<String,String>
+    + ALERT_LEVEL_LABEL     : Map<String,String>
+    + BRADY_TYPE_FILTERS    : Map<String,Function>
+    + BRADY_TYPE_LABEL      : Map<String,String>
+    --helpers--
+    + tremorSeverityLabel(cls) : String
+    + tremorSeverityCSS(cls)   : String
+    + isFogFreeze(val)         : Boolean
+    + fogPredictionLabel(val)  : String
+    + normBradyType(val)       : String
+    + medState(event)          : String // ON | OFF
+  }
+
+}
+
+' ══════════════════════════════════════════════════════════
+' 5. FRONTEND — Páginas Médico
+' ══════════════════════════════════════════════════════════
+package "Frontend — Médico" #E8EDF5 {
+
+  class MedicoHome <<page>> {
+    - patients    : Patient[]
+    - search      : String
+    - alertFilter : String // '' | 'alerta' | 'sin'
+    - loading     : Boolean
+    - error       : String
+    + cargarPacientes() : void
+    + alertChip(count) : JSX
+    ..
+    uses GET /patients
+  }
+
+  class SesionDetalle <<page>> {
+    - sessionData  : SessionData
+    - activeTab    : String // tremor|fog|bradykinesia
+    - bradySubTab  : String // ft|ho|ps
+    - tremorSubTab : String // accel|freq|amp
+    - fogSubTab    : String // accel|prob
+    - dateRange    : {start,end}
+    - isPrinting   : Boolean
+    - loading      : Boolean
+    - error        : String
+    + fetchSessions() : void
+    + renderTremorChart() : JSX
+    + renderFOGChart() : JSX
+    + renderBradycinesiaChart() : JSX
+    ..
+    uses GET /sessions/{patient_id}
+    uses DataSchema
+  }
+
+}
+
+' ══════════════════════════════════════════════════════════
+' 6. FRONTEND — Páginas Cuidador
+' ══════════════════════════════════════════════════════════
+package "Frontend — Cuidador" #E8F5EE {
+
+  class CuidadorPacientes <<page>> {
+    - view      : String // lista | indicadores
+    - patients  : PatientSummary[]
+    - activePat : String
+    - detail    : PatientIndicators
+    - loading   : Boolean
+    - error     : String
+    + getRecomendacion(p) : String // alta|media|info|ok
+    + openIndicadores(pid) : void
+    + backToLista() : void
+    ..
+    uses GET /cuidador/patients
+    uses GET /cuidador/patients/{id}/indicators
+  }
+
+  class CuidadorAlertas <<page>> {
+    - alerts   : AlertEntry[]
+    - summary  : AlertSummary
+    - loading  : Boolean
+    - error    : String
+    + NIVEL_CONFIG : Map<String,NivelCfg>
+    + getFallbackNivel(typeClass) : String
+    ..
+    uses GET /cuidador/alerts
+  }
+
+}
+
+' ══════════════════════════════════════════════════════════
+' 7. FRONTEND — Páginas Paciente
+' ══════════════════════════════════════════════════════════
+package "Frontend — Paciente" #FEF9EC {
+
+  class PacienteDashboard <<page>> {
+    - data    : DashboardData
+    - loading : Boolean
+    - eduOpen : Boolean
+    + AlertCard(alerta) : JSX
+    + modKey(modClass)  : String
+    ..
+    uses GET /paciente/dashboard
+  }
+
+  class PacienteSesiones <<page>> {
+    - sesiones : SessionRow[]
+    - loading  : Boolean
+    - error    : String
+    + alertBadge(n) : JSX
+    + modClass(m)   : String // mp-tremor|mp-fog|mp-brady
+    ..
+    uses GET /paciente/sesiones
+  }
+
+  class PacienteAlertas <<page>> {
+    - alertas : AlertEntry[]
+    - filtro  : String // ''|tremor|fog|brady
+    - loading : Boolean
+    + MOD_INFO : Map<String,ModInfo>
+    ..
+    uses GET /paciente/alertas
+  }
+
+}
+
+' ══════════════════════════════════════════════════════════
+' 8. FRONTEND — Admin e Investigador
+' ══════════════════════════════════════════════════════════
+package "Frontend — Admin / Investigador" #F3F4F6 {
+
+  class AdminPanel <<page>> {
+    - usuarios    : Usuario[]
+    - assignments : Assignment[]
+    - loading     : Boolean
+    + deleteAsignacion(email) : void
+    + postAsignacion(body)    : void
+    ..
+    uses GET/POST/PUT/DELETE /admin/*
+  }
+
+  class InvestigadorSesiones <<page>> {
+    - view          : String // sesiones | metricas
+    - sessions      : SessionRow[]
+    - activeSession : SessionRow
+    - summary       : SummaryData
+    - metrics       : MetricsData
+    - search        : String
+    - filterMod     : String
+    - filterAlert   : Boolean
+    - loading       : Boolean
+    + openMetricas(ses) : void
+    + backToSesiones()  : void
+    ..
+    uses GET /investigador/sesiones
+    uses GET /investigador/sesiones/{id}/metricas
+  }
+
+  class InvestigadorExportar <<page>> {
+    - job       : ExportJob
+    - modulo    : String
+    - startDate : String
+    - endDate   : String
+    - soloAlertas : Boolean
+    - elapsed   : Int
+    + poll(jobId, attempt) : void
+    ..
+    uses GET /investigador/exportar
+    uses GET /investigador/exportar/jobs/{id}
+  }
+
+}
+
+' ══════════════════════════════════════════════════════════
+' 9. INFRAESTRUCTURA IoT
+' ══════════════════════════════════════════════════════════
+package "Infraestructura IoT" #FEF2F2 {
+
+  class ESP32Firmware <<device>> {
+    + device_id   : "ESP32-001"
+    + modules     : [tremor, fog]
+    + endpoint    : afz9c26od0an1-ats.iot.us-east-2.amazonaws.com
+    + topic_tremor : "tesis/tremor/events"
+    + topic_fog    : "tesis/fog/events"
+    + publish(payload : MotorEventRaw) : void
+  }
+
+  class BradykinesiaBridge <<process>> {
+    ' Desktop\Plataforma\bradykinesia_bridge.py
+    ' Proceso local sin redundancia
+    + firebase_project : "kinesiatrack4"
+    + mqtt_topic       : "tesis/bradykinesia/events"
+    + extraer_kinematic(features) : Float
+    + extraer_amplitud(chartData) : Float
+    + mapear_movimiento(type)     : String
+    + mapear_estado_clinico(s)    : String
+    + construir_payload(id, data) : Dict
+    + publicar(conn, payload)     : void
+  }
+
+  class FirebaseFirestore <<external>> {
+    + project    : "kinesiatrack4"
+    + collection : "experimentSessions"
+    + on_snapshot(callback) : Watch
+  }
+
+  class IoTRule_MotorEvents <<iot-rule>> {
+    + name  : "rule_parkinson_motor_events"
+    + topic : "tesis/+/events"
+    + sql   : SELECT newuuid() AS event_id,\n\
+              clientid() AS device_id,\n\
+              timestamp() AS timestamp,\n\
+              concat('SESSION#', session_id) AS PK,\n\
+              concat(module,'#',cast(timestamp() AS String)) AS SK,\n\
+              * FROM 'tesis/+/events'
+    + action : DynamoDB → parkinson_motor_events
+  }
+
+  class IoTRule_ModuleMetrics <<iot-rule>> {
+    + name  : "rule_parkinson_module_metrics"
+    + topic : "tesis/+/metrics"
+    + action : DynamoDB → parkinson_module_metrics
+    ' ⚠ Activa pero sin tráfico — firmware no publica a /metrics
+  }
+
+}
+
+' ══════════════════════════════════════════════════════════
+' RELACIONES
+' ══════════════════════════════════════════════════════════
+
+' IoT → DynamoDB
+ESP32Firmware       -down->  IoTRule_MotorEvents  : MQTT tesis/tremor|fog/events
+BradykinesiaBridge  -down->  IoTRule_MotorEvents  : MQTT tesis/bradykinesia/events
+FirebaseFirestore   -right-> BradykinesiaBridge   : on_snapshot (tiempo real)
+IoTRule_MotorEvents -down->  MotorEvent           : PutItem
+IoTRule_ModuleMetrics -down-> ModuleMetrics       : PutItem (sin tráfico)
+
+' Lambda → DynamoDB
+SessionsLambda  --> MotorEvent  : query GSI patient_id+timestamp
+PatientsLambda  --> Patient     : CRUD
+CuidadorLambda  --> MotorEvent  : query GSI patient_id+timestamp
+CuidadorLambda  --> Patient     : query GSI cuidador_id
+AdminLambda     --> Patient     : scan + update
+AdminLambda     --> AuditEntry  : put_item
+PacienteLambda  --> MotorEvent  : query alertas
+InvestigadorLambda --> MotorEvent : query + export
+
+' Lambda → DTOs
+SessionsLambda   ..>  SessionData        : produce
+CuidadorLambda   ..>  AlertEntry         : produce
+CuidadorLambda   ..>  PatientIndicators  : produce
+PacienteLambda   ..>  AlertEntry         : produce
+
+' Frontend → API
+MedicoHome           ..>  PatientsLambda     : GET /patients
+SesionDetalle        ..>  SessionsLambda     : GET /sessions/{id}
+CuidadorPacientes    ..>  CuidadorLambda     : GET /cuidador/*
+CuidadorAlertas      ..>  CuidadorLambda     : GET /cuidador/alerts
+PacienteDashboard    ..>  PacienteLambda     : GET /paciente/dashboard
+PacienteSesiones     ..>  PacienteLambda     : GET /paciente/sesiones
+PacienteAlertas      ..>  PacienteLambda     : GET /paciente/alertas
+AdminPanel           ..>  AdminLambda        : /admin/*
+InvestigadorSesiones ..>  InvestigadorLambda : GET /investigador/sesiones
+InvestigadorExportar ..>  InvestigadorLambda : GET /investigador/exportar
+
+' Frontend → Constantes
+SesionDetalle     ..> DataSchema : tremorSeverityLabel
+SesionDetalle     ..> DataSchema : isFogFreeze / fogPredictionLabel
+SesionDetalle     ..> DataSchema : normBradyType / medState
+
+' Frontend consume DTOs
+SesionDetalle     -->  SessionData        : consume
+CuidadorPacientes -->  PatientIndicators  : consume
+CuidadorAlertas   -->  AlertEntry         : consume
+PacienteAlertas   -->  AlertEntry         : consume
+
+' ══════════════════════════════════════════════════════════
+' NOTAS
+' ══════════════════════════════════════════════════════════
+
+note right of MotorEvent
+  <b>Schema A</b> (ESP32 firmware / app móvil)
+  — campos: module, accel_x/y/z (plano),
+    tremor_class: rest|essential,
+    test_type: fingertapping|...
+
+  <b>Schema B</b> (Firebase bridge)
+  — campos: type, accel Map {x,y,z},
+    tremor_class: leve|moderado|severo,
+    movement: finger_tapping|...
+
+  <b>norm_*</b> en SessionsLambda
+  unifica ambos antes de producir los DTOs.
+end note
+
+note bottom of Session
+  ⚠ <b>Tabla huérfana</b>
+  13 ítems seed — nadie la escribe.
+  CuidadorLambda ya no la consulta
+  (corregido: lee motor_events vía GSI).
+end note
+
+note bottom of ModuleMetrics
+  ⚠ <b>Tabla vacía — Diseño Anexo F</b>
+  IoT rule activa pero firmware nunca
+  publica a tesis/+/metrics.
+end note
+
+note bottom of BradykinesiaBridge
+  ⚠ <b>Proceso local sin supervisión</b>
+  Corre en Desktop\Plataforma\.
+  Si la máquina se apaga, bradicinesia
+  de Firebase deja de llegar a AWS.
+end note
+
+note right of DataSchema
+  <b>Fuente única de verdad frontend</b>
+  src/constants/dataSchema.js
+  Toda la lógica de clasificación
+  de valores canónicos vive aquí.
+end note
+
+@enduml

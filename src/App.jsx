@@ -35,13 +35,13 @@ export default function App() {
           <Route path="/registro" element={<Registro />} />
 
           {/* Rutas médico */}
-          <Route path="/medico" element={<ProtectedRoute><MedicoHome /></ProtectedRoute>} />
-          <Route path="/medico/nuevo" element={<ProtectedRoute><FichaPaciente /></ProtectedRoute>} />
-          <Route path="/medico/paciente/:patientId" element={<ProtectedRoute><FichaPaciente /></ProtectedRoute>} />
-          <Route path="/medico/paciente/:patientId/sesiones" element={<ProtectedRoute><SesionDetalle /></ProtectedRoute>} />
+          <Route path="/medico" element={<ProtectedRoute role="medico"><MedicoHome /></ProtectedRoute>} />
+          <Route path="/medico/nuevo" element={<ProtectedRoute role="medico"><FichaPaciente /></ProtectedRoute>} />
+          <Route path="/medico/paciente/:patientId" element={<ProtectedRoute role="medico"><FichaPaciente /></ProtectedRoute>} />
+          <Route path="/medico/paciente/:patientId/sesiones" element={<ProtectedRoute role="medico"><SesionDetalle /></ProtectedRoute>} />
 
           {/* Rutas admin */}
-          <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
+          <Route path="/admin" element={<ProtectedRoute role="admin"><AdminLayout /></ProtectedRoute>}>
             <Route index element={<Navigate to="/admin/panel" replace />} />
             <Route path="panel"        element={<AdminPanel />} />
             <Route path="usuarios"     element={<AdminUsuarios />} />
@@ -51,21 +51,21 @@ export default function App() {
           </Route>
 
           {/* Rutas cuidador */}
-          <Route path="/cuidador" element={<ProtectedRoute><CuidadorLayout /></ProtectedRoute>}>
+          <Route path="/cuidador" element={<ProtectedRoute role="cuidador"><CuidadorLayout /></ProtectedRoute>}>
             <Route index element={<Navigate to="/cuidador/pacientes" replace />} />
             <Route path="pacientes" element={<CuidadorPacientes />} />
             <Route path="alertas"   element={<CuidadorAlertas />} />
           </Route>
 
           {/* Rutas investigador */}
-          <Route path="/investigador" element={<ProtectedRoute><InvestigadorLayout /></ProtectedRoute>}>
+          <Route path="/investigador" element={<ProtectedRoute role="investigador"><InvestigadorLayout /></ProtectedRoute>}>
             <Route index element={<Navigate to="/investigador/sesiones" replace />} />
             <Route path="sesiones" element={<InvestigadorSesiones />} />
             <Route path="exportar" element={<InvestigadorExportar />} />
           </Route>
 
           {/* Rutas paciente */}
-          <Route path="/paciente" element={<ProtectedRoute><PacienteLayout /></ProtectedRoute>}>
+          <Route path="/paciente" element={<ProtectedRoute role="paciente"><PacienteLayout /></ProtectedRoute>}>
             <Route index element={<Navigate to="/paciente/inicio" replace />} />
             <Route path="inicio"   element={<PacienteDashboard />} />
             <Route path="sesiones" element={<PacienteSesiones />} />
